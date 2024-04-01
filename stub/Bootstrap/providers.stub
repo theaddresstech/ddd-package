@@ -1,0 +1,14 @@
+<?php
+
+return [
+    /*
+    * Package Service Providers...
+    */
+    theaddresstechnology\DDD\DomainDriverDesignServiceProvider::class,
+    /*
+    * Application Service Providers...
+    */
+    Src\Common\Providers\DomainServiceProvider::class,
+
+    ###DOMAINS SERVICE PROVIDERS###
+];
