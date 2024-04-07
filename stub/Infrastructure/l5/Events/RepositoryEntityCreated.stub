@@ -1,0 +1,15 @@
+<?php
+namespace Src\Infrastructure\l5\Events;
+
+/**
+ * Class RepositoryEntityCreated
+ * @package Src\Infrastructure\l5\Events
+ * @author Anderson Andrade <contato@andersonandra.de>
+ */
+class RepositoryEntityCreated extends RepositoryEventBase
+{
+    /**
+     * @var string
+     */
+    protected $action = "created";
+}

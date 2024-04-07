@@ -1,0 +1,15 @@
+<?php
+namespace Src\Infrastructure\l5\Events;
+
+/**
+ * Class RepositoryEntityUpdated
+ * @package Src\Infrastructure\l5\Events
+ * @author Anderson Andrade <contato@andersonandra.de>
+ */
+class RepositoryEntityUpdated extends RepositoryEventBase
+{
+    /**
+     * @var string
+     */
+    protected $action = "updated";
+}

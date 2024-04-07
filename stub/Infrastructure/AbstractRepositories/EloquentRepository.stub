@@ -3,7 +3,7 @@ namespace Src\Infrastructure\AbstractRepositories;
 use Spatie\QueryBuilder\QueryBuilder;
 use Spatie\QueryBuilder\AllowedFilter;
 use Illuminate\Database\Eloquent\Builder;
-use Prettus\Repository\Eloquent\BaseRepository;
+use Src\Infrastructure\l5\Eloquent\BaseRepository;
 use Illuminate\Contracts\Container\Container as Application;
 abstract class EloquentRepository extends BaseRepository
 {

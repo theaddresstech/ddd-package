@@ -1,0 +1,14 @@
+<?php
+namespace Src\Infrastructure\l5\Exceptions;
+
+use Exception;
+
+/**
+ * Class RepositoryException
+ * @package Src\Infrastructure\l5\Exceptions
+ * @author Anderson Andrade <contato@andersonandra.de>
+ */
+class RepositoryException extends Exception
+{
+
+}

@@ -86,6 +86,38 @@ return [
                         "ModelFactory.php",
                     ],
                 ],
+                "l5"=>[
+                    "Contracts"=>[
+                        "CacheableInterface.php",
+                        "CriteriaInterface.php",
+                        "Presentable.php",
+                        "PresenterInterface.php",
+                        "RepositoryCriteriaInterface.php",
+                        "RepositoryInterface.php",
+                        "Transformable.php"
+                    ],
+                    "Criteria"=>[
+                        "RequestCriteria.php"
+                    ],
+                    "Eloquent"=>[
+                        "BaseRepository.php"
+                    ],
+                    "Events"=>[
+                        "RepositoryEntityCreated.php",
+                        "RepositoryEntityCreating.php",
+                        "RepositoryEntityDeleted.php",
+                        "RepositoryEntityDeleting.php",
+                        "RepositoryEntityUpdated.php",
+                        "RepositoryEntityUpdating.php",
+                        "RepositoryEventBase.php"
+                    ],
+                    "Exceptions"=>[
+                        "RepositoryException.php"
+                    ],
+                    "Traits"=>[
+                        "PresentableTrait.php"
+                    ],
+                ],
 
                 "Commands" => [
                     "AbstractCommand" => [

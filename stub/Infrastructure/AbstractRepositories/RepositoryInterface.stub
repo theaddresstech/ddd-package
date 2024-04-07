@@ -1,7 +1,7 @@
 <?php
 
 namespace Src\Infrastructure\AbstractRepositories;
-use Prettus\Repository\Contracts\RepositoryInterface as BaseRepositoryInterface;
+use Src\Infrastructure\l5\Contracts\RepositoryInterface as BaseRepositoryInterface;
 
 interface RepositoryInterface extends BaseRepositoryInterface
 {

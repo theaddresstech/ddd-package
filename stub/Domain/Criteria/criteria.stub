@@ -2,8 +2,8 @@
 
 namespace Src\Domain\{{DOMAIN}}\Criteria;
 
-use Prettus\Repository\Contracts\CriteriaInterface;
-use Prettus\Repository\Contracts\RepositoryInterface;
+use Src\Infrastructure\l5\Contracts\CriteriaInterface;
+use Src\Infrastructure\l5\Repository\Contracts\RepositoryInterface;
 
 /**
  * Class ACriteria.

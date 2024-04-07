@@ -1,0 +1,20 @@
+<?php
+namespace Src\Infrastructure\l5\Contracts;
+
+/**
+ * Interface CriteriaInterface
+ * @package Src\Infrastructure\l5\Contracts
+ * @author Anderson Andrade <contato@andersonandra.de>
+ */
+interface CriteriaInterface
+{
+    /**
+     * Apply criteria in query repository
+     *
+     * @param                     $model
+     * @param RepositoryInterface $repository
+     *
+     * @return mixed
+     */
+    public function apply($model, RepositoryInterface $repository);
+}
