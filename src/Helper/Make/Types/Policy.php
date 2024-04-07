@@ -85,7 +85,7 @@ class Policy extends Maker
 
         $policyServiceProviderContent = Str::of($content)->replace(
             "###POLICIES###",
-            "$entity_namespace::class => $policy_namespace::class,\n\t\t###POLICIES###"
+            "Gate::policy($entity_namespace::class,$policy_namespace::class);\n\t\t###POLICIES###"
         );
 
         $this->save($ServiceProviderPath,'PolicyServiceProvider','php',$policyServiceProviderContent);

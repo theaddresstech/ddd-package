@@ -2,21 +2,18 @@
 
 namespace Src\Domain\{{DOMAIN}}\Entities\Scopes;
 
-use Illuminate\Database\Eloquent\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
 
 class {{NAME}} implements Scope
 {
     /**
-     * @param Builder $builder
-     * @param $value
-     * @return mixed
-     */
-    public function apply(Builder $builder, $value)
+    * Apply the scope to a given Eloquent query builder.
+    */
+    public function apply(Builder $builder, Model $model): void
     {
-        if (!in_array(strtolower($value), ['desc', 'asc'])) {
-            $value = 'desc';
-        }
-        return $builder->orderBy('created_at', $value);
+       //
     }
+
 }

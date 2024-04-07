@@ -83,8 +83,9 @@ class Event extends Maker
 
         $eventServiceProviderContent = Str::of($content)->replace(
             "###EVENTS###",
-            "\\$class::class => [\n\t\t\t###LISTENERS_{$type}_$className###\n\t\t],\n\t\t###EVENTS###"
+            "\n\t\t###EVENTS###"
         );
+
 
         $this->save($eventServiceProviderPath,'EventServiceProvider','php',$eventServiceProviderContent);
 
