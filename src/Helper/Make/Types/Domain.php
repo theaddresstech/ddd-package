@@ -85,6 +85,8 @@ class Domain extends Maker
 
         $this->modifyConfig();
 
+        $this->resourceFolder();
+
         return true;
     }
 
@@ -211,5 +213,9 @@ class Domain extends Maker
         $app = File::get(base_path('bootstrap').DIRECTORY_SEPARATOR.'providers.php');
         $content = Str::of($app)->replace("###DOMAINS SERVICE PROVIDERS###",$service_provider."::class,\n\t\t###DOMAINS SERVICE PROVIDERS###");
         $this->save(base_path('bootstrap'),'providers','php',$content);
+    }
+
+    public function resourceFolder(){
+        File::makeDirectory($this->path().DIRECTORY_SEPARATOR."Resources".DIRECTORY_SEPARATOR."Views",0777, true, true);
     }
 }

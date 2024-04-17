@@ -97,6 +97,8 @@ class Directory extends Command
                 //$this->info("finished adding file name ".$file."to Folder ".$folder);
             }
         }
+        File::makeDirectory(base_path().DIRECTORY_SEPARATOR.$this->base.DIRECTORY_SEPARATOR."Resources".DIRECTORY_SEPARATOR."Views",0777, true, true);
+
         File::delete(app_path().DIRECTORY_SEPARATOR."Models".DIRECTORY_SEPARATOR."User.php");
 
 
