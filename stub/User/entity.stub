@@ -2,7 +2,7 @@
 
 namespace Src\Domain\User\Entities;
 
-//use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\HasApiTokens;
 //use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Src\Domain\User\Entities\Traits\Relations\UserRelations;

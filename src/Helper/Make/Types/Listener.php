@@ -75,7 +75,7 @@ class Listener extends Maker
 
         $this->save($destination,$className,'php',$content);
 
-        preg_match('#namespace (App\\\Domain\\\.*);#',$content,$matches);
+        preg_match('#namespace (Src\\\Domain\\\.*);#',$content,$matches);
 
         $class = $matches[1]."\\".$className;
 

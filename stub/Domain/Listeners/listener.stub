@@ -3,7 +3,7 @@
 namespace Src\Domain\{{DOMAIN}}\Listeners\{{TYPE}};
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Src\Domain\{{DOMAIN}}\Events\{{EVENT_NAME}};
+use Src\Domain\{{DOMAIN}}\Events\{{TYPE}}\{{EVENT_NAME}};
 
 class {{NAME}}Listener implements ShouldQueue
 {
