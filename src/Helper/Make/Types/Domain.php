@@ -87,6 +87,8 @@ class Domain extends Maker
 
         $this->resourceFolder();
 
+        $this->createTests();
+
         return true;
     }
 
