@@ -16,7 +16,7 @@ class RepositoriesEloquent extends Test
     public function __construct(Maker $TestCommand, string $domain)
     {
         $this->domain = $domain;
-        $this->repositoriesDirPath = ['App', 'Domain', $domain, 'Repositories', 'Eloquent'];
+        $this->repositoriesDirPath = ['Src', 'Domain', $domain, 'Repositories', 'Eloquent'];
         $this->repositories = Path::files(...$this->repositoriesDirPath);
         $this->TestCommand = $TestCommand;
     }

@@ -26,8 +26,8 @@ class Resources extends Test
     public function __construct(Maker $TestCommand, string $domain)
     {
         $this->domain = $domain;
-        $this->resourcesDirPath = ['App', 'Domain', $domain, 'Http', 'Resources'];
-        $this->entitiesDirPath = ['App', 'Domain', $domain, 'Entities'];
+        $this->resourcesDirPath = ['Src', 'Domain', $domain, 'Http', 'Resources'];
+        $this->entitiesDirPath = ['Src', 'Domain', $domain, 'Entities'];
         $this->entities = Path::directories(...$this->resourcesDirPath);
         $this->TestCommand = $TestCommand;
     }
@@ -38,10 +38,15 @@ class Resources extends Test
             $resource = $entity . 'Resource';
             $this->entityInstance = $this->instantiateJustCreated($this->entitiesDirPath, $entity);
             $entityNameSpace = join('\\', array_merge($this->entitiesDirPath, [$entity]));
-            $this->entityRecord = factory($entityNameSpace)->make([
-                'id' => 1,
-            ]);
-            $resourceInstance = $this->instantiateJustCreated(array_merge($this->resourcesDirPath, [$entity]), $resource, $this->entityRecord);
+//            $this->entityRecord = factory($entityNameSpace)->make([
+//                'id' => 1,
+//            ]);
+
+            $class = new \Stdclass();
+            $class->id = 1;
+            $class->name = "test";
+
+            $resourceInstance = $this->instantiateJustCreated(array_merge($this->resourcesDirPath, [$entity]), $resource, $class);
 
             $this->createBasicTestCases($resourceInstance);
 
