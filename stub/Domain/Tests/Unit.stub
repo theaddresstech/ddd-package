@@ -1,10 +1,10 @@
 <?php
 
-namespace Src\Domain\{{NAME}}\Tests\Unit;
+namespace Src\Domain\{{DOMAIN}}\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 
-class UnitTest extends TestCase
+class {{NAME}}Test extends TestCase
 {
     /**
      * A basic test {{NAME}}.
