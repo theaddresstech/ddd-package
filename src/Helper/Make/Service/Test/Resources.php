@@ -41,10 +41,10 @@ class Resources extends Test
 //            $this->entityRecord = factory($entityNameSpace)->make([
 //                'id' => 1,
 //            ]);
-
-            $class = new \Stdclass();
+            // TODO: fix factory helper issue in the original package
+            $class = new \StdClass();
             $class->id = 1;
-            $class->name = "test";
+            $class->name = 'test';
 
             $resourceInstance = $this->instantiateJustCreated(array_merge($this->resourcesDirPath, [$entity]), $resource, $class);
 
