@@ -24,7 +24,7 @@ class Entities extends Test
     public function __construct(Maker $TestCommand, string $domain)
     {
         $this->domain = $domain;
-        $this->entitiesDirPath = ['App', 'Domain', $domain, 'Entities'];
+        $this->entitiesDirPath = ['Src', 'Domain', $domain, 'Entities'];
         $this->entities = Path::files(...$this->entitiesDirPath);
         $this->TestCommand = $TestCommand;
     }

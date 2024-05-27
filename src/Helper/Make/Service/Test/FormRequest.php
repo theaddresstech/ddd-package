@@ -23,7 +23,7 @@ class FormRequest extends Test
     public function __construct(Maker $TestCommand, string $domain)
     {
         $this->domain = $domain;
-        $this->formRequestsDirPath = ['App', 'Domain', $domain, 'Http', 'Requests'];
+        $this->formRequestsDirPath = ['Src', 'Domain', $domain, 'Http', 'Requests'];
         $this->formRequestDirs = Path::directories(...$this->formRequestsDirPath);
         $this->TestCommand = $TestCommand;
     }
