@@ -18,8 +18,8 @@ class TestCaseFactory
 
         preg_match('#^generate(.*)#', $testClass, $matches);
 
-        $testClassNameSpace = NamespaceCreator::Segments('MohamedReda', 'DDD', 'Helper', 'Make', 'Service', 'Test', $matches[1]);
-
+        $testClassNameSpace = NamespaceCreator::Segments('theaddresstechnology', 'DDD', 'Helper', 'Make', 'Service', 'Test', $matches[1]);
+//die(var_dump($testClassNameSpace));
         $testClass = new $testClassNameSpace($TestCommand, $domain);
         $testClass->generate();
     }

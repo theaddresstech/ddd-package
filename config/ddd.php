@@ -144,7 +144,10 @@ return [
             //     'Migrations',
             //     'Seeds'
             // ],
-             'Tests',
+            // 'Tests'=>[
+            //     'Feature',
+            //     'Unit'
+            // ],
             // 'Entities' => [
             //     'Views',
             //     'Traits'=>[

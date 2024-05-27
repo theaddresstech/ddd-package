@@ -123,7 +123,7 @@ class Crud extends Maker
             'domain'    =>  $values['domain'],
             'entity'    =>  Naming::class($values['name']),
         ]);
-        
+
         if($values['name'] !='user') {
             Policy::createService([
                 'name' => $values['name']." Policy",
@@ -135,17 +135,17 @@ class Crud extends Maker
                 'name' => $values['name']." Policy",
                 'domain' => $values['domain'],
                 'entity' => Naming::class($values['name']),
-            ]); 
+            ]);
         }
 
         // Create API Resource
-        // Test::createService([
-        //     'name'              =>  $values['name'],
-        //     'domain'            =>  $values['domain'],
-        //     'entity related'    =>  true,
-        //     'entity'            =>  $values['name'],
-        //     'test type'         => 'All'
-        // ]);
+         Test::createService([
+             'name'              =>  $values['name'],
+             'domain'            =>  $values['domain'],
+             'entity related'    =>  true,
+             'entity'            =>  $values['name'],
+             'test type'         => 'All'
+         ]);
 
         // Create Controllers
         $this->controllers($values);
