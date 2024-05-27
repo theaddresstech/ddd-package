@@ -87,6 +87,8 @@ class Domain extends Maker
 
         $this->resourceFolder();
 
+        $this->createTests();
+
         return true;
     }
 
@@ -218,4 +220,40 @@ class Domain extends Maker
     public function resourceFolder(){
         File::makeDirectory($this->path().DIRECTORY_SEPARATOR."Resources".DIRECTORY_SEPARATOR."Views",0777, true, true);
     }
+
+    public function createTests(){
+
+        $FeatureTestStub = File::get(Path::stub('Domain', 'Tests', 'Feature.stub'));
+        $UnitTestStub    = File::get(Path::stub('Domain', 'Tests', 'Unit.stub'));
+
+        $tests = [
+            [
+                "php"=>'FeatureTest',
+                "stub"=>$FeatureTestStub,
+                'params'=>[
+                    '{{NAME}}'=>$this->name,
+                    '{{ALIAS}}'=>$this->alias,
+                ]
+            ],
+            [
+                "php"=>'UnitTest',
+                "stub"=>$UnitTestStub,
+                'params'=>[
+                    '{{NAME}}'=>$this->name,
+                    '{{ALIAS}}'=>$this->alias,
+                ]
+            ],
+        ];
+
+        foreach($tests as $test) {
+
+            $destination = path::build($this->path(),'Tests');
+
+            $content = Str::of($test['stub'])->replace(array_keys($test['params']),array_values($test['params']));
+
+            $this->save($destination,$test['php'],'php',$content);
+
+        }
+    }
+
 }
