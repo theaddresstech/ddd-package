@@ -196,9 +196,7 @@ class {{NAME}}Controller extends Controller
     public function destroy($id)
     {
         try{
-            $entity = $this->{{NAME_REPO_VAR}}->destroy($id);
-
-            $entity->delete();
+            $this->{{NAME_REPO_VAR}}->delete($id);
 
             $this->setApiResponse(fn () => response()->json(['deleted' => true], 200));
         }catch (\Exception $e) {
