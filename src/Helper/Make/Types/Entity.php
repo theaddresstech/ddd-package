@@ -107,7 +107,7 @@ class Entity extends Maker
     private function createLocalScopes($values){
 
         $name         = Naming::class($values['name']);
-        $file       = Naming::class($values['name'],'relations');
+        $file       = Naming::class($values['name'],'localScopes');
 
         $local_scopes_placholder = [
             "{{NAME}}"  => $name,
