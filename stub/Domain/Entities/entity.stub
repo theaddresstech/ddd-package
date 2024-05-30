@@ -6,10 +6,11 @@ use Src\Infrastructure\AbstractModels\BaseModel as Model;
 use Src\Domain\{{DOMAIN}}\Entities\Traits\Relations\{{NAME}}Relations;
 use Src\Domain\{{DOMAIN}}\Entities\Traits\CustomAttributes\{{NAME}}Attributes;
 use Src\Domain\{{DOMAIN}}\Repositories\Contracts\{{NAME}}Repository;
+use Src\Domain\{{DOMAIN}}\Entities\Traits\LocalScopes\{{NAME}}LocalScopes;
 
 class {{NAME}} extends Model
 {
-    use {{NAME}}Relations, {{NAME}}Attributes;
+    use {{NAME}}Relations, {{NAME}}Attributes,{{NAME}}LocalScopes;
 
     /**
      * define belongsTo relations.

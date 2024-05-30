@@ -52,6 +52,7 @@ class Entity extends Maker
         $this->createEntity($values);
         $this->createRelations($values);
         $this->createAttributes($values);
+        $this->createLocalScopes($values);
 
         return true;
     }
@@ -101,6 +102,23 @@ class Entity extends Maker
         $attributes_destination = Path::toDomain($values['domain'],'Entities','Traits','CustomAttributes');
         $attributes_content = Str::of($this->getStub('customer-attributes'))->replace(array_keys($attributes_placholder),array_values($attributes_placholder));
         $this->save($attributes_destination,$file,'php',$attributes_content);
+    }
+
+    private function createLocalScopes($values){
+
+        $name         = Naming::class($values['name']);
+        $file       = Naming::class($values['name'],'relations');
+
+        $local_scopes_placholder = [
+            "{{NAME}}"  => $name,
+            "{{DOMAIN}}"=> $values['domain'],
+        ];
+
+        $local_scopes_destination = Path::toDomain($values['domain'],'Entities','Traits','localScopes');
+
+        $local_scopes_content = Str::of($this->getStub('local-scopes'))->replace(array_keys($local_scopes_placholder),array_values($local_scopes_placholder));
+
+        $this->save($local_scopes_destination,$file,'php',$local_scopes_content);
     }
 
 }

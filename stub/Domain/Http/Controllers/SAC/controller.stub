@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use theaddresstechnology\DDD\Traits\Responder;
 use Src\Domain\{{DOMAIN}}\Http\Resources\{{API_RESOURCE_NAME}}\{{API_RESOURCE_NAME}}ResourceCollection;
 use Src\Domain\{{DOMAIN}}\Http\Resources\{{API_RESOURCE_NAME}}\{{API_RESOURCE_NAME}}Resource;
+use Illuminate\Http\Response;
 
 class {{NAME}}Controller extends Controller
 {
@@ -55,16 +56,19 @@ class {{NAME}}Controller extends Controller
      */
     public function __invoke(Request $request)
     {
-        $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
+        try{
+            $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
 
-        $this->setData('title', __('main.show-all') . ' ' . __('main.{{VIEW_RESOURCE}}'));
+            $this->setData('title', __('main.show-all') . ' ' . __('main.{{VIEW_RESOURCE}}'));
 
-        $this->setData('alias', $this->domainAlias);
+            $this->setData('alias', $this->domainAlias);
 
-        $this->setData('data', $index);
+            $this->setData('data', $index);
 
-        $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
-
+            $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
+        }catch (\Exception $e) {
+            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+        }
         return $this->response();
     }
 }

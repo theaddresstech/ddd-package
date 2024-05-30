@@ -11,6 +11,8 @@ use theaddresstechnology\DDD\Traits\Responder;
 use Src\Domain\{{DOMAIN}}\Entities\{{NAME}};
 use Src\Domain\{{DOMAIN}}\Http\Resources\{{API_RESOURCE_NAME}}\{{API_RESOURCE_NAME}}ResourceCollection;
 use Src\Domain\{{DOMAIN}}\Http\Resources\{{API_RESOURCE_NAME}}\{{API_RESOURCE_NAME}}Resource;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 
 class {{NAME}}Controller extends Controller
 {
@@ -58,15 +60,20 @@ class {{NAME}}Controller extends Controller
      */
     public function index(Request $request)
     {
-        $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
+        try{
+           $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
 
-        $this->setData('title', __('main.show-all') . ' ' . __('main.{{VIEW_RESOURCE}}'));
+           $this->setData('title', __('main.show-all') . ' ' . __('main.{{VIEW_RESOURCE}}'));
 
-        $this->setData('alias', $this->domainAlias);
+           $this->setData('alias', $this->domainAlias);
 
-        $this->setData('data', $index);
+           $this->setData('data', $index);
 
-        $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
+           $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
+
+        }catch(\Exception $e){
+            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+        }
 
         return $this->response();
     }
@@ -95,18 +102,20 @@ class {{NAME}}Controller extends Controller
      */
     public function store({{NAME_REQUEST_STORE}} $request)
     {
-        $store = $this->{{NAME_REPO_VAR}}->create($request->validated());
+        try{
+           DB::beginTransaction();
 
-        if($store){
-            $this->setData('data', $store);
+           $store = $this->{{NAME_REPO_VAR}}->create($request->validated());
 
-            $this->redirectRoute("{$this->resourceRoute}.show",[$store->id]);
-            $this->useCollection({{API_RESOURCE_NAME}}Resource::class, 'data');
-        }else{
-            $this->redirectBack();
-            $this->setApiResponse(fn()=> response()->json(['created'=>false]));
+           $this->setData('data', $store);
+
+           DB::commit();
+
+           $this->useCollection({{API_RESOURCE_NAME}}Resource::class, 'data');
+        }catch(\Exception $e){
+            DB::rollBack();
+            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
-
         return $this->response();
     }
 
@@ -118,15 +127,16 @@ class {{NAME}}Controller extends Controller
      */
     public function show(${{VIEW_RESOURCE}})
     {
-        ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}});
+       try {
+           ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}});
 
-        $this->setData('title', __('main.show') . ' ' . __('main.{{VIEW_RESOURCE}}') . ' : ' . ${{VIEW_RESOURCE}}->id, 'web');
+           $this->setData('show', ${{VIEW_RESOURCE}});
 
-        $this->setData('alias', $this->domainAlias,'web');
-
-        $this->setData('show', ${{VIEW_RESOURCE}});
-
-        $this->useCollection({{API_RESOURCE_NAME}}Resource::class,'show');
+           $this->useCollection({{API_RESOURCE_NAME}}Resource::class,'show');
+       }
+       catch (\Exception $e) {
+          $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+       }
 
         return $this->response();
     }
@@ -159,15 +169,19 @@ class {{NAME}}Controller extends Controller
      */
     public function update({{NAME_REQUEST_UPDATE}} $request, ${{VIEW_RESOURCE}})
     {
-        $update = $this->{{NAME_REPO_VAR}}->update($request->validated(), ${{VIEW_RESOURCE}});
+        try{
+            DB::beginTransaction();
 
-        if($update){
-            $this->redirectRoute("{$this->resourceRoute}.show",[$update->id]);
+            $update = $this->{{NAME_REPO_VAR}}->update($request->validated(), ${{VIEW_RESOURCE}});
+
             $this->setData('data', $update);
+
+             DB::commit();
+
             $this->useCollection({{API_RESOURCE_NAME}}Resource::class, 'data');
-        }else{
-            $this->redirectBack();
-            $this->setApiResponse(fn()=>response()->json(['updated'=>false],422));
+        }catch(\Exception $e) {
+             DB::rollBack();
+             $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
 
         return $this->response();
@@ -181,18 +195,15 @@ class {{NAME}}Controller extends Controller
      */
     public function destroy($id)
     {
-        $ids = request()->get('ids',[$id]);
+        try{
+            $entity = $this->{{NAME_REPO_VAR}}->destroy($id);
 
-        $delete = $this->{{NAME_REPO_VAR}}->destroy($ids);
+            $entity->delete();
 
-        if($delete){
-            $this->redirectRoute("{$this->resourceRoute}.index");
-            $this->setApiResponse(fn()=>response()->json(['deleted'=>true],200));
-        }else{
-            $this->redirectBack();
-            $this->setApiResponse(fn()=>response()->json(['updated'=>false],422));
+            $this->setApiResponse(fn () => response()->json(['deleted' => true], 200));
+        }catch (\Exception $e) {
+            $this->setApiResponse(fn () => response()->json(['deleted' => false, 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
-
         return $this->response();
     }
 
