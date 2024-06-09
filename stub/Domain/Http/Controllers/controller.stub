@@ -125,10 +125,10 @@ class {{NAME}}Controller extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(${{VIEW_RESOURCE}})
+    public function show({{NAME}} ${{VIEW_RESOURCE}})
     {
        try {
-           ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}});
+           ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}}->id);
 
            $this->setData('show', ${{VIEW_RESOURCE}});
 
@@ -167,12 +167,12 @@ class {{NAME}}Controller extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update({{NAME_REQUEST_UPDATE}} $request, ${{VIEW_RESOURCE}})
+    public function update({{NAME_REQUEST_UPDATE}} $request,{{NAME}} ${{VIEW_RESOURCE}})
     {
         try{
             DB::beginTransaction();
 
-            $update = $this->{{NAME_REPO_VAR}}->update($request->validated(), ${{VIEW_RESOURCE}});
+            $update = $this->{{NAME_REPO_VAR}}->update($request->validated(), ${{VIEW_RESOURCE}}->id);
 
             $this->setData('data', $update);
 
@@ -190,13 +190,13 @@ class {{NAME}}Controller extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param  {{NAME}} ${{VIEW_RESOURCE}}
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy({{NAME}} ${{VIEW_RESOURCE}})
     {
         try{
-            $this->{{NAME_REPO_VAR}}->delete($id);
+           ${{VIEW_RESOURCE}}->delete();
 
             $this->setApiResponse(fn () => response()->json(['deleted' => true], 200));
         }catch (\Exception $e) {

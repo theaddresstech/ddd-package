@@ -237,7 +237,7 @@ return [
         'entity' => 'Domain/Entities/entity.stub',
         'relation' => 'Domain/Entities/Traits/Relations/relations.stub',
         'customer-attributes' => 'Domain/Entities/Traits/CustomAttributes/attributes.stub',
-        'local-scopes' => 'Domain/Entities/Traits/LocalScopes/localScopes.stub',
+        'local-scopes' => 'Domain/Entities/Traits/LocalScopes/scopes.stub',
         'factory' => 'Domain/Database/Factories/factory.stub',
         'migration' => 'Domain/Database/Migrations/migration.stub',
         'migration_view' => 'Domain/Database/Migrations/view.stub',

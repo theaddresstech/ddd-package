@@ -106,15 +106,17 @@ class Entity extends Maker
 
     private function createLocalScopes($values){
 
-        $name         = Naming::class($values['name']);
-        $file       = Naming::class($values['name'],'localScopes');
+        $name       = Naming::class($values['name']);
+        $file       = Naming::class($values['name'],'LocalScopes');
+
+        $file=Str::replace('scopes','Scopes',$file);
 
         $local_scopes_placholder = [
             "{{NAME}}"  => $name,
             "{{DOMAIN}}"=> $values['domain'],
         ];
 
-        $local_scopes_destination = Path::toDomain($values['domain'],'Entities','Traits','localScopes');
+        $local_scopes_destination = Path::toDomain($values['domain'],'Entities','Traits','LocalScopes');
 
         $local_scopes_content = Str::of($this->getStub('local-scopes'))->replace(array_keys($local_scopes_placholder),array_values($local_scopes_placholder));
 
