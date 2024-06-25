@@ -10,9 +10,10 @@
         }
     ],
     "require": {
-        "spatie/laravel-activitylog": "^4.0",
-        "spatie/laravel-query-builder": "^5.0",
-        "laravel/passport": "^12.0"
+        "php": "^8.0",
+        "spatie/laravel-activitylog": "^4.7.3",
+        "spatie/laravel-query-builder": "^5.7",
+        "the42coders/workflows": "^0.0.19"
     },
     "autoload": {
         "psr-4": {
@@ -34,6 +35,6 @@
         }
     },
     "require-dev": {
-        "orchestra/testbench": "^5.1"
+        "orchestra/testbench": "^7.42"
     }
 }
