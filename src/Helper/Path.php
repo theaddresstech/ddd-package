@@ -2,7 +2,7 @@
 
 namespace theaddresstechnology\DDD\Helper;
 
-use islam\DDD\Helper\Make\Types\Seeder;
+use theaddresstechnology\DDD\Helper\Make\Types\Seeder;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;

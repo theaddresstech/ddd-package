@@ -1,9 +1,9 @@
 <?php
 
-namespace islam\DDD\Helper\Make\Service\Test;
+namespace theaddresstechnology\DDD\Helper\Make\Service\Test;
 
 use Illuminate\Support\Str;
-use islam\DDD\Helper\Make\Maker;
+use theaddresstechnology\DDD\Helper\Make\Maker;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
