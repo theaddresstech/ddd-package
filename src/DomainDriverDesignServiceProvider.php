@@ -33,8 +33,11 @@ class DomainDriverDesignServiceProvider extends ServiceProvider{
     }
 
     private function setCommands(){
+        $this->commands($this->commands);
+        /*
         if($this->app->runningInConsole()){
             $this->commands($this->commands);
         }
+        */
     }
 }

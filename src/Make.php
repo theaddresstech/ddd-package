@@ -30,7 +30,7 @@ class Make extends Command
      *
      * @var string
      */
-    protected $description = "Create Domain\n\tCRUD\n\tDatatable\n\tEntity\n\tController\n\tRequest\n\tSAC\n\tListener\n\tNotification\n\tEmail\n\tProvider\n\tRepository\n\tView\n\tResource";
+    protected $description = "Create Domain\n\tCRUD\n\tDatatable\n\tEntity\n\tController\n\tRequest\n\tSAC\n\tListener\n\tNotification\n\tEmail\n\tProvider\n\tRepository\n\tView\n\tResource\n\tEnableDomain\n\tDisableDomain";
 
     /**
      * Create a new command instance.

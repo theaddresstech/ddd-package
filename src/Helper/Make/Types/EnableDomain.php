@@ -49,13 +49,6 @@ class EnableDomain extends Maker
     public $booleanOptions = [];
 
     /**
-     * Check if the current options is requesd based on other option
-     *
-     * @return Array
-     */
-    public $requiredUnless = [];
-
-    /**
      * Fill all placeholders in the stub file
      *
      * @return Boll
@@ -68,17 +61,22 @@ class EnableDomain extends Maker
     }
     public function modifyConfig(){
 
-        // Add Service Provider to config/app
+        // Add Service Provider to bootstrap/providers
         $service_provider = NamespaceCreator::Segments("Src","Domain",$this->name,"Providers","DomainServiceProvider");
-        $app = File::get(config_path('app.php'));
-        
+        $app = File::get(base_path('bootstrap'.DIRECTORY_SEPARATOR.'providers.php'));
        if(Str::of($app)->contains([$service_provider],[false]) ==false) {
            $content = Str::of($app)->replace("###DOMAINS SERVICE PROVIDERS###", $service_provider . "::class,\n\t\t###DOMAINS SERVICE PROVIDERS###");
-           $this->save(config_path(), 'app', 'php', $content);
+
+           $this->save(base_path().DIRECTORY_SEPARATOR."bootstrap", 'providers', 'php', $content);
+
+           $migration_path="src".DIRECTORY_SEPARATOR."Domain".DIRECTORY_SEPARATOR.$this->name.DIRECTORY_SEPARATOR."Database".DIRECTORY_SEPARATOR."Migrations";
+
+           \Illuminate\Support\Facades\Artisan::call("migrate",["--path"=>$migration_path]);
+
            return true;
        }
         error_log("This Domain Is Already Enabled");
-       
+
         return false;
     }
 }

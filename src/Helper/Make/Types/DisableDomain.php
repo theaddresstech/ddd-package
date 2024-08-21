@@ -68,17 +68,23 @@ class DisableDomain extends Maker
     }
     public function modifyConfig(){
 
-        // Remove Service Provider from config/app
+        // Remove Service Provider from boostrap/providers
         $service_provider = NamespaceCreator::Segments("Src","Domain",$this->name,"Providers","DomainServiceProvider");
-        $app = File::get(config_path('app.php'));
+        $app = File::get(base_path('bootstrap'.DIRECTORY_SEPARATOR.'providers.php'));
         //
        if(Str::of($app)->contains([$service_provider],[false]) ==true) {
            $content = Str::of($app)->replace($service_provider."::class,","");
-           $this->save(config_path(), 'app', 'php', $content);
+
+           $this->save(base_path().DIRECTORY_SEPARATOR."bootstrap", 'providers', 'php', $content);
+
+           $migration_path="src".DIRECTORY_SEPARATOR."Domain".DIRECTORY_SEPARATOR.$this->name.DIRECTORY_SEPARATOR."Database".DIRECTORY_SEPARATOR."Migrations";
+
+           \Illuminate\Support\Facades\Artisan::call("migrate:rollback",["--path"=>$migration_path]);
+
            return true;
        }
         error_log("This Domain Is Already Disabled");
-       
+
         return false;
     }
 }

@@ -137,13 +137,24 @@ class FirstDomain extends Maker
         //$resource = ['Dashboard','Resources','Views','dashboard','index.blade.php'];
         $route = ['Dashboard','Routes','web','auth.php'];
 
+        $controller2 = ['Dashboard','Http','Controllers','ConfigureDomainController.php'];
+        //$resource = ['Dashboard','Resources','Views','dashboard','index.blade.php'];
+        $route2 = ['Dashboard','Routes','api','public.php'];
+
+        $request = ['Dashboard','Http','Requests','ConfigureDomain','ConfigureDomainFormRequest.php'];
+
         File::makeDirectory(Path::toDomain('Dashboard','Http','Controllers'),0755,true);
         File::put(Path::toDomain(...$controller), File::get(Path::stub(...$controller)));
+        File::put(Path::toDomain(...$controller2), File::get(Path::stub(...$controller2)));
 
         //File::makeDirectory(Path::toDomain('Dashboard','Resources','Views','dashboard'),0755,true);
         //File::put(Path::toDomain(...$resource), File::get(Path::stub(...$resource)));
 
         File::put(Path::toDomain(...$route), File::get(Path::stub(...$route)));
+        File::put(Path::toDomain(...$route2), File::get(Path::stub(...$route2)));
+
+        File::makeDirectory(Path::toDomain('Dashboard','Http','Requests','ConfigureDomain'),0755,true);
+        File::put(Path::toDomain(...$request), File::get(Path::stub(...$request)));
     }
 
     public function modifyMigrationSeeder(){
