@@ -19,6 +19,8 @@ to Install This Package Following this steps:
   3-setup package by writting folowing command : 
   
       composer require theaddresstechnology/ddd
+
+      composer require laravel/passport
       
  # usage 
  
