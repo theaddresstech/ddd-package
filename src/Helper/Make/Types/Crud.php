@@ -139,13 +139,13 @@ class Crud extends Maker
         }
 
         // Create API Resource
-         Test::createService([
+         /*Test::createService([
              'name'              =>  $values['name'],
              'domain'            =>  $values['domain'],
              'entity related'    =>  true,
              'entity'            =>  $values['name'],
              'test type'         => 'All'
-         ]);
+         ]);*/
 
         // Create Controllers
         $this->controllers($values);
