@@ -236,12 +236,12 @@ class Crud extends Maker
 
 
         $web_path = Path::toDomain($values['domain'],'Routes','web','auth.php');
-        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::resource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
+        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::apiResource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
         $this->save(Path::toDomain($values['domain'],'Routes','web'),'auth','php',$web_content);
 
 
         $web_path = Path::toDomain($values['domain'],'Routes','api','auth.php');
-        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::resource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
+        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::apiResource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
         $this->save(Path::toDomain($values['domain'],'Routes','api'),'auth','php',$web_content);
 
     }

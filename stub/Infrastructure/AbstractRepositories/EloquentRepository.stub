@@ -49,6 +49,20 @@ abstract class EloquentRepository extends BaseRepository
      */
     protected $allowedSorts = [];
 
+     /**
+       * AllowedDefaultSorts.
+       *
+       * @var array
+     */
+    protected $allowedDefaultSorts = [];
+
+     /**
+      * Allowed scope Filters
+      * @var array
+     */
+     protected $allowedFilterScopes = [];
+
+
     /**
      * @param Application $app
      */
@@ -57,11 +71,17 @@ abstract class EloquentRepository extends BaseRepository
         foreach ($this->allowedFiltersExact as $field) {
             array_push($this->allowedFilters, AllowedFilter::exact($field));
         }
+        foreach ($this->allowedFilterScopes as $scope_filter) {
+            array_push($this->allowedFilters, AllowedFilter::scope($scope_filter));
+        }
         if ($this->model instanceof Builder) {
             $this->model = QueryBuilder::for($this->model)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedIncludes($this->allowedIncludes);
         } else {
             $query = app()->make($this->model())->newQuery();
             $this->model = QueryBuilder::for($query)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedIncludes($this->allowedIncludes);
+        }
+        if (! empty($this->allowedDefaultSorts)) {
+           $this->model = $this->model->defaultSorts($this->allowedDefaultSorts);
         }
         return $this;
     }
