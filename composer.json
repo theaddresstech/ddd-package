@@ -11,7 +11,7 @@
     ],
     "require": {
         "spatie/laravel-activitylog": "^4.0",
-        "spatie/laravel-query-builder": "^5.0",
+        "spatie/laravel-query-builder": "^6.3",
         "laravel/passport": "^12.3"
     },
     "autoload": {
