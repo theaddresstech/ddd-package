@@ -42,7 +42,7 @@ class SafePath
         }
 
         foreach (explode('/', $value) as $part) {
-            if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*(\.[A-Za-z0-9]+)?$/', $part)) {
+            if (!preg_match('/^[A-Za-z0-9][A-Za-z0-9_-]*(\.[A-Za-z0-9]+)*$/', $part)) {
                 return false;
             }
         }

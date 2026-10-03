@@ -19,7 +19,10 @@
     "autoload": {
         "psr-4": {
             "theaddresstechnology\\DDD\\": "src/"
-        }
+        },
+        "files": [
+            "src/Modules/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -32,6 +35,9 @@
                 "theaddresstechnology\\DDD\\DomainDriverDesignServiceProvider"
             ]
         }
+    },
+    "suggest": {
+        "wikimedia/composer-merge-plugin": "Required in the root application so src/Domain/*/composer.json autoload entries are merged. module:setup writes the include path."
     },
     "require-dev": {
         "phpunit/phpunit": "^11.5"
