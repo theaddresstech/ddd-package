@@ -36,15 +36,12 @@ class Repository
 
     public function ordered(): array
     {
-        $modules = array_values($this->all());
-        usort($modules, static fn (Module $left, Module $right) => $left->priority() <=> $right->priority());
-
-        return $modules;
+        return $this->dependencyOrder($this->all());
     }
 
     public function enabled(): array
     {
-        return array_values(array_filter($this->ordered(), static fn (Module $module) => $module->isEnabled()));
+        return $this->dependencyOrder(array_filter($this->all(), static fn (Module $module) => $module->isEnabled()));
     }
 
     public function disabled(): array
@@ -90,6 +87,9 @@ class Repository
     public function enable(string $name): void
     {
         $module = $this->findOrFail($name);
+        $enabled = array_filter($this->all(), static fn (Module $item) => $item->isEnabled());
+        $enabled[$module->name()] = $module;
+        $this->dependencyOrder($enabled);
         $this->activator->set($module->name(), true);
         $this->flush();
     }
@@ -97,6 +97,7 @@ class Repository
     public function disable(string $name): void
     {
         $module = $this->findOrFail($name);
+        $this->assertNoEnabledDependents($module);
         $this->activator->set($module->name(), false);
         $this->flush();
     }
@@ -120,7 +121,7 @@ class Repository
         $module = $this->findOrFail($name);
         $assets = rtrim((string) ($this->config['paths']['assets'] ?? $this->basePath.'/public/modules'), '/');
 
-        return $assets.'/'.$module->alias();
+        return SafePath::confine($assets.'/'.$module->alias(), $assets);
     }
 
     public function asset(string $name, string $file): string
@@ -149,8 +150,12 @@ class Repository
     public function deleteDirectory(string $name): void
     {
         $module = $this->findOrFail($name);
+        $this->assertNoEnabledDependents($module);
         $path = $module->path();
         SafePath::confine($path, $this->modulesPath());
+        if (realpath($path) === realpath($this->modulesPath())) {
+            throw new \InvalidArgumentException('Refusing to delete the modules root.');
+        }
 
         if (!is_dir($path)) {
             return;
@@ -164,22 +169,69 @@ class Repository
     private function discover(): array
     {
         $modules = [];
+        $aliases = [];
 
         foreach ($this->directories() as $directory) {
             $manifestPath = $directory.'/module.json';
             if (!is_file($manifestPath)) {
                 continue;
             }
-            $manifest = json_decode((string) file_get_contents($manifestPath), true);
+            $manifest = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
             if (!is_array($manifest)) {
-                continue;
+                throw new \UnexpectedValueException('Module manifest must be a JSON object: '.$manifestPath);
             }
             $name = SafePath::className((string) ($manifest['name'] ?? basename($directory)));
+            if (isset($modules[$name])) {
+                throw new \UnexpectedValueException('Duplicate module name: '.$name);
+            }
             $status = $this->activator->get($name);
             $modules[$name] = Module::fromManifest($directory, $manifest, $status !== false);
+            $alias = strtolower($modules[$name]->alias());
+            if (isset($aliases[$alias])) {
+                throw new \UnexpectedValueException('Duplicate module alias: '.$alias);
+            }
+            $aliases[$alias] = true;
         }
 
         return $modules;
+    }
+
+    private function dependencyOrder(array $modules): array
+    {
+        uasort($modules, static fn (Module $a, Module $b) => ($a->priority() <=> $b->priority()) ?: strcmp($a->name(), $b->name()));
+        $visiting = [];
+        $ordered = [];
+        $visit = function (Module $module) use (&$visit, &$visiting, &$ordered, $modules): void {
+            $name = $module->name();
+            if (isset($ordered[$name])) {
+                return;
+            }
+            if (isset($visiting[$name])) {
+                throw new \UnexpectedValueException('Circular module dependency involving '.$name);
+            }
+            $visiting[$name] = true;
+            foreach ($module->requires() as $dependency) {
+                if (!isset($modules[$dependency])) {
+                    throw new \UnexpectedValueException($name.' requires missing or disabled module '.$dependency);
+                }
+                $visit($modules[$dependency]);
+            }
+            unset($visiting[$name]);
+            $ordered[$name] = $module;
+        };
+        foreach ($modules as $module) {
+            $visit($module);
+        }
+        return array_values($ordered);
+    }
+
+    private function assertNoEnabledDependents(Module $module): void
+    {
+        foreach ($this->all() as $candidate) {
+            if ($candidate->isEnabled() && in_array($module->name(), $candidate->requires(), true)) {
+                throw new \LogicException($candidate->name().' requires '.$module->name().'; disable the dependent module first.');
+            }
+        }
     }
 
     private function directories(): array
@@ -254,7 +306,21 @@ class Repository
             mkdir($directory, 0755, true);
         }
 
-        file_put_contents($file, '<?php return '.var_export($payload, true).';'.PHP_EOL);
+        $temporary = tempnam($directory, '.ddd-cache-');
+        if ($temporary === false) {
+            throw new \RuntimeException('Unable to create module cache.');
+        }
+        try {
+            $contents = '<?php return '.var_export($payload, true).';'.PHP_EOL;
+            if (file_put_contents($temporary, $contents) !== strlen($contents)
+                || !chmod($temporary, 0644) || !rename($temporary, $file)) {
+                throw new \RuntimeException('Unable to replace module cache.');
+            }
+        } finally {
+            if (is_file($temporary)) {
+                unlink($temporary);
+            }
+        }
     }
 
     private function normalize(string $name): string
@@ -268,13 +334,18 @@ class Repository
 
     private function removeTree(string $directory): void
     {
+        if (is_link($directory)) {
+            unlink($directory);
+
+            return;
+        }
         $items = scandir($directory) ?: [];
         foreach ($items as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
             $path = $directory.DIRECTORY_SEPARATOR.$item;
-            if (is_dir($path)) {
+            if (is_dir($path) && !is_link($path)) {
                 $this->removeTree($path);
             } else {
                 unlink($path);

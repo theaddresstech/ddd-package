@@ -1,4 +1,0 @@
-type {{ENTITY}} {
-    id:ID
-    name:String!
-}

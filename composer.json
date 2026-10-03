@@ -11,10 +11,12 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "spatie/laravel-activitylog": "^4.0",
-        "spatie/laravel-query-builder": "^6.3",
-        "laravel/passport": "^12.3|^13.0"
+        "php": "^8.4.1",
+        "ext-dom": "*",
+        "ext-fileinfo": "*",
+        "spatie/laravel-activitylog": "^5.1.1",
+        "spatie/laravel-query-builder": "^7.3.5",
+        "laravel/passport": "^13.8"
     },
     "autoload": {
         "psr-4": {
@@ -29,6 +31,7 @@
             "Tests\\": "tests/"
         }
     },
+    "bin": ["bin/ddd-doctor"],
     "extra": {
         "laravel":{
             "providers":[
@@ -39,7 +42,11 @@
     "suggest": {
         "wikimedia/composer-merge-plugin": "Required in the root application so src/Domain/*/composer.json autoload entries are merged. module:setup writes the include path."
     },
+    "conflict": {
+        "nwidart/laravel-modules": "*"
+    },
     "require-dev": {
-        "phpunit/phpunit": "^11.5"
+        "phpunit/phpunit": "^13.1",
+        "orchestra/testbench": "^10.12 || ^11.3"
     }
 }

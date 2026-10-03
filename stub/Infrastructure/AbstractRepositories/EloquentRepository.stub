@@ -63,25 +63,41 @@ abstract class EloquentRepository extends BaseRepository
      protected $allowedFilterScopes = [];
 
 
+    public function getAllowedFields(): array
+    {
+        return $this->allowedFields;
+    }
+
+    public function getAllowedIncludes(): array
+    {
+        return $this->allowedIncludes;
+    }
+
+    public function getAllowedSorts(): array
+    {
+        return $this->allowedSorts;
+    }
+
     /**
      * @param Application $app
      */
     public function spatie()
     {
+        $filters = $this->allowedFilters;
         foreach ($this->allowedFiltersExact as $field) {
-            array_push($this->allowedFilters, AllowedFilter::exact($field));
+            array_push($filters, AllowedFilter::exact($field));
         }
         foreach ($this->allowedFilterScopes as $scope_filter) {
-            array_push($this->allowedFilters, AllowedFilter::scope($scope_filter));
+            array_push($filters, AllowedFilter::scope($scope_filter));
         }
         if ($this->model instanceof Builder) {
-            $this->model = QueryBuilder::for($this->model)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedIncludes($this->allowedIncludes);
+            $this->model = QueryBuilder::for($this->model)->allowedFields(...$this->allowedFields)->allowedFilters(...$filters)->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts);
         } else {
             $query = app()->make($this->model())->newQuery();
-            $this->model = QueryBuilder::for($query)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedIncludes($this->allowedIncludes);
+            $this->model = QueryBuilder::for($query)->allowedFields(...$this->allowedFields)->allowedFilters(...$filters)->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts);
         }
         if (! empty($this->allowedDefaultSorts)) {
-           $this->model = $this->model->defaultSorts($this->allowedDefaultSorts);
+           $this->model = $this->model->defaultSorts(...$this->allowedDefaultSorts);
         }
         return $this;
     }

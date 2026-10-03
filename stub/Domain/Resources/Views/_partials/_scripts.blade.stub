@@ -4,7 +4,7 @@
         el: '#kt_page_portlet',
         data: {
             fData: {
-                name: '{{ getData($data, 'name') }}',
+                name: {{ \Illuminate\Support\Js::from(getData($data, 'name')) }},
                 /**/
                 @if ($action == 'edit')
                     _method: 'PATCH',
@@ -23,7 +23,7 @@
 
                     method: "post",
                     
-                    url:'{{ $submitUrl }}',
+                    url: {{ \Illuminate\Support\Js::from($submitUrl) }},
                     
                     data:this.fData,
 
@@ -41,9 +41,9 @@
                     }
                 }
                 if(option == 'continue'){
-                    request.redirect = '{{ route("###ROUTE###.create") }}'
+                    request.redirect = {{ \Illuminate\Support\Js::from(route("###ROUTE###.create")) }}
                 }else{
-                    request.redirect = '{{ route("###ROUTE###.show", ":id") }}'
+                    request.redirect = {{ \Illuminate\Support\Js::from(route("###ROUTE###.show", ":id")) }}
                 }
 
                 this.isLoading = true

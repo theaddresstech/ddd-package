@@ -108,20 +108,10 @@ class FirstDomain extends Maker
     private function createAuthControllers($values){
         File::copyDirectory(Path::stub($values['domain'],'Auth'),Path::toDomain($values['domain'],'Http','Controllers','Auth'));
         //File::copyDirectory(Path::stub($values['domain'],'auth-view','auth'),Path::toDomain($values['domain'],'Resources','Views','user','auth'));
-        File::append(Path::toDomain($values['domain'],'Routes','api','auth.php'),"\nRoute::post('/login', \\Src\\Domain\\User\\Http\\Controllers\\Auth\\LoginController::class);\n");
+        File::append(Path::toDomain($values['domain'],'Routes','api','guest.php'),"\nRoute::post('/login', \\Src\\Domain\\User\\Http\\Controllers\\Auth\\LoginController::class)->middleware('throttle:10,1');\n");
 
 
-        File::deleteDirectory(Path::toDomain($values['domain'],'Grapqhl'));
-        File::copyDirectory(Path::stub($values['domain'],'Graphql'),Path::toDomain($values['domain'],'Graphql'));
-        $this->save(base_path('graphql'),'auth','graphql',"type Mutation\ntype Query");
 
-        // $config = Str::of(
-        //     File::get(config_path('lighthouse-graphql-passport.php'))
-        // )->replace(
-        //     "'schema' => null",
-        //     "'schema' => base_path('graphql/auth.graphql')"
-        // );
-        // $this->save(config_path(),'lighthouse-graphql-passport','php',$config);
     }
 
     private function buildLayout(){

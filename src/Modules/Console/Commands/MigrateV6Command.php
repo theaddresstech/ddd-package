@@ -7,7 +7,7 @@ use theaddresstechnology\DDD\Modules\Console\ModuleCli;
 
 class MigrateV6Command extends Command
 {
-    protected $signature = 'module:v6:migrate';
+    protected $signature = 'module:v6:migrate {--force : Replace an existing status registry}';
 
     protected $description = 'Convert legacy module status data to the status file';
 

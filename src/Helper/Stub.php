@@ -28,7 +28,7 @@ trait Stub
 
         $file = array_pop($directories);
 
-        $path = Path::stub(...$directories).$file;
+        $path = Path::build(Path::stub(...$directories), $file);
 
         return $path;
     }
@@ -56,7 +56,7 @@ trait Stub
         $stubs = config('ddd.stubs');
         if(array_key_exists($name,$stubs)){
 
-            $path = Path::stub().ltrim($stubs[$name],DIRECTORY_SEPARATOR);
+            $path = Path::stub($stubs[$name]);
 
             return $content === true ? File::get($path) : $path;
         }else{

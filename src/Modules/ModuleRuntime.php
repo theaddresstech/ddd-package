@@ -7,14 +7,15 @@ use Illuminate\Support\Facades\Blade;
 
 class ModuleRuntime
 {
-    private static array $booted = [];
+    private static ?\WeakMap $booted = null;
 
     public static function boot(Application $app, Module $module): void
     {
-        if (isset(self::$booted[$module->name()])) {
+        self::$booted ??= new \WeakMap();
+        $booted = self::$booted[$app] ?? [];
+        if (isset($booted[$module->name()])) {
             return;
         }
-        self::$booted[$module->name()] = true;
 
         $publishedViews = function_exists('resource_path') ? resource_path('views/modules') : $module->path().'/published-views';
         if ($app->bound('view')) {
@@ -37,10 +38,15 @@ class ModuleRuntime
             $app['config']->set($key, array_merge($items, is_array($existing) ? $existing : []));
         }
 
-        $publishedLang = function_exists('base_path') ? base_path('resources/lang/modules') : $module->path().'/published-lang';
+        $publishedLang = $app->langPath('vendor');
         if ($app->bound('translator')) {
+            $namespaceRegistered = false;
             foreach (ModuleAssets::translationPaths($module, $publishedLang) as $path) {
-                $app->make('translator')->addNamespace($module->alias(), $path);
+                if (!$namespaceRegistered) {
+                    $app->make('translator')->addNamespace($module->alias(), $path);
+                    $namespaceRegistered = true;
+                }
+                $app->make('translator')->addJsonPath($path);
             }
         }
 
@@ -50,10 +56,25 @@ class ModuleRuntime
                 $migrator->path($migrations);
             });
         }
+
+        if ($app->bound('router') && !$app->routesAreCached()) {
+            foreach (['web', 'api'] as $type) {
+                $file = $module->path('routes/'.$type.'.php');
+                if (is_file($file)) {
+                    $router = $app->make('router')->middleware($type);
+                    if ($type === 'api') {
+                        $router = $router->prefix('api');
+                    }
+                    $router->group($file);
+                }
+            }
+        }
+        $booted[$module->name()] = true;
+        self::$booted[$app] = $booted;
     }
 
     public static function flush(): void
     {
-        self::$booted = [];
+        self::$booted = null;
     }
 }

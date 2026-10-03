@@ -44,7 +44,8 @@ class ComposerTasks
 
     public static function rewriteAutoload(string $composerFile, string $namespace, string $path = ''): void
     {
-        if (!preg_match('/^[A-Za-z\\\\]+\\\\$/', $namespace)) {
+        if (!str_ends_with($namespace, '\\') || array_filter(explode('\\', substr($namespace, 0, -1)),
+            static fn (string $part): bool => !\theaddresstechnology\DDD\Helper\SafePath::isIdentifier($part))) {
             throw new \InvalidArgumentException('Invalid namespace.');
         }
 
@@ -54,7 +55,7 @@ class ComposerTasks
         }
 
         $json['autoload']['psr-4'][$namespace] = $path;
-        file_put_contents($composerFile, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
+        self::writeJson($composerFile, $json);
     }
 
     public static function ensureMergeInclude(string $composerFile, string $include): bool
@@ -76,8 +77,31 @@ class ComposerTasks
             $includes[] = $include;
         }
         $json['extra']['merge-plugin']['include'] = array_values($includes);
-        file_put_contents($composerFile, json_encode($json, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
+        self::writeJson($composerFile, $json);
 
         return true;
+    }
+
+    private static function writeJson(string $file, array $contents): void
+    {
+        if (is_link($file)) {
+            throw new \RuntimeException('Refusing to rewrite a linked Composer manifest.');
+        }
+        $json = json_encode($contents, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR).PHP_EOL;
+        $temporary = tempnam(dirname($file), '.ddd-composer-');
+        if ($temporary === false) {
+            throw new \RuntimeException('Unable to create a temporary Composer manifest.');
+        }
+        try {
+            $permissions = is_file($file) ? (fileperms($file) & 0777) : 0644;
+            if (file_put_contents($temporary, $json) !== strlen($json)
+                || !chmod($temporary, $permissions) || !rename($temporary, $file)) {
+                throw new \RuntimeException('Unable to update Composer manifest.');
+            }
+        } finally {
+            if (is_file($temporary)) {
+                unlink($temporary);
+            }
+        }
     }
 }

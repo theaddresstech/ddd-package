@@ -58,13 +58,12 @@ class Crud extends Maker
             'domain'    => $values['domain']
         ]);
 
-        // Graphql::createService([
-        //     'name'      => $values['name'],
-        //     'domain'    => $values['domain'],
-        //     'entity'    => $values['name'],
-        //     'graphql type'=>'.graphql',
-        //     'graphql php type'=>null
-        // ]);
+        Policy::createService([
+            'name' => $values['name'].' Policy',
+            'domain' => $values['domain'],
+            'entity' => Naming::class($values['name']),
+        ]);
+
 
         // Create DatabaseView
         // DatabaseView::createService([

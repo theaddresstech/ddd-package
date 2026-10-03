@@ -52,6 +52,12 @@ class EnableDomain extends Maker
      */
     public function service(Array $values):Bool{
         $this->name = SafePath::className($values['domain']);
+        $repository = \theaddresstechnology\DDD\Modules\Repository::class;
+        if (app()->bound($repository) && app($repository)->has($this->name)) {
+            app($repository)->enable($this->name);
+
+            return true;
+        }
 
         return $this->modifyConfig($values);
 

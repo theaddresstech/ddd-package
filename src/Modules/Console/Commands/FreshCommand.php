@@ -7,7 +7,7 @@ use theaddresstechnology\DDD\Modules\Console\ModuleCli;
 
 class FreshCommand extends Command
 {
-    protected $signature = 'module:migrate-fresh {module?} {--force}';
+    protected $signature = 'module:migrate-fresh {module?} {--database=} {--force}';
 
     protected $description = 'Drop all tables and re-run module migrations';
 
