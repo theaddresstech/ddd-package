@@ -3,7 +3,7 @@
 namespace Src\Domain\{{DOMAIN}}\Policies;
 
 use Src\Domain\{{DOMAIN}}\Entities\{{ENTITY}};
-use Src\Domain\User\Entities\User;
+use Src\Domain\User\Entities\User as AuthenticatedUser;
 use Illuminate\Auth\Access\Response;
 
 class {{NAME}}
@@ -12,56 +12,56 @@ class {{NAME}}
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(AuthenticatedUser $actor): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, {{ENTITY}} ${{ENTITY_LC}}): bool
+    public function view(AuthenticatedUser $actor, {{ENTITY}} ${{ENTITY_LC}}): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user): bool
+    public function create(AuthenticatedUser $actor): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, {{ENTITY}} ${{ENTITY_LC}}): bool
+    public function update(AuthenticatedUser $actor, {{ENTITY}} ${{ENTITY_LC}}): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, {{ENTITY}} ${{ENTITY_LC}}): bool
+    public function delete(AuthenticatedUser $actor, {{ENTITY}} ${{ENTITY_LC}}): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, {{ENTITY}} ${{ENTITY_LC}}): bool
+    public function restore(AuthenticatedUser $actor, {{ENTITY}} ${{ENTITY_LC}}): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, {{ENTITY}} ${{ENTITY_LC}}): bool
+    public function forceDelete(AuthenticatedUser $actor, {{ENTITY}} ${{ENTITY_LC}}): bool
     {
-        //
+        return false; // Define the application permission before allowing access.
     }
 }

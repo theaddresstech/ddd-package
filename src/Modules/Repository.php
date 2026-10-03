@@ -120,7 +120,7 @@ class Repository
         $module = $this->findOrFail($name);
         $assets = rtrim((string) ($this->config['paths']['assets'] ?? $this->basePath.'/public/modules'), '/');
 
-        return $assets.'/'.$module->alias();
+        return SafePath::confine($assets.'/'.$module->alias(), $assets);
     }
 
     public function asset(string $name, string $file): string
@@ -151,6 +151,9 @@ class Repository
         $module = $this->findOrFail($name);
         $path = $module->path();
         SafePath::confine($path, $this->modulesPath());
+        if (realpath($path) === realpath($this->modulesPath())) {
+            throw new \InvalidArgumentException('Refusing to delete the modules root.');
+        }
 
         if (!is_dir($path)) {
             return;
@@ -175,6 +178,9 @@ class Repository
                 continue;
             }
             $name = SafePath::className((string) ($manifest['name'] ?? basename($directory)));
+            if (isset($modules[$name])) {
+                throw new \UnexpectedValueException('Duplicate module name: '.$name);
+            }
             $status = $this->activator->get($name);
             $modules[$name] = Module::fromManifest($directory, $manifest, $status !== false);
         }
@@ -254,7 +260,21 @@ class Repository
             mkdir($directory, 0755, true);
         }
 
-        file_put_contents($file, '<?php return '.var_export($payload, true).';'.PHP_EOL);
+        $temporary = tempnam($directory, '.ddd-cache-');
+        if ($temporary === false) {
+            throw new \RuntimeException('Unable to create module cache.');
+        }
+        try {
+            $contents = '<?php return '.var_export($payload, true).';'.PHP_EOL;
+            if (file_put_contents($temporary, $contents) !== strlen($contents)
+                || !chmod($temporary, 0644) || !rename($temporary, $file)) {
+                throw new \RuntimeException('Unable to replace module cache.');
+            }
+        } finally {
+            if (is_file($temporary)) {
+                unlink($temporary);
+            }
+        }
     }
 
     private function normalize(string $name): string
@@ -268,13 +288,18 @@ class Repository
 
     private function removeTree(string $directory): void
     {
+        if (is_link($directory)) {
+            unlink($directory);
+
+            return;
+        }
         $items = scandir($directory) ?: [];
         foreach ($items as $item) {
             if ($item === '.' || $item === '..') {
                 continue;
             }
             $path = $directory.DIRECTORY_SEPARATOR.$item;
-            if (is_dir($path)) {
+            if (is_dir($path) && !is_link($path)) {
                 $this->removeTree($path);
             } else {
                 unlink($path);

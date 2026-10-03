@@ -51,7 +51,7 @@ class ModuleCli
         }
         $statuses = $this->statusesFile();
         if (!is_file($statuses)) {
-            file_put_contents($statuses, "{}\n");
+            (new \theaddresstechnology\DDD\Modules\Activators\FileActivator($statuses))->replace([]);
         }
         ComposerTasks::ensureMergeInclude($this->basePath.'/composer.json', 'src/Domain/*/composer.json');
         $command->info('Module directories are ready.');
@@ -233,8 +233,18 @@ class ModuleCli
             return 1;
         }
 
-        Artisan::call('migrate:fresh', ['--force' => true]);
+        // Resolve explicit module names before any database-changing command runs.
+        $this->selected($command);
+        $parameters = ['--force' => true];
+        $database = $this->optional($command, 'database');
+        if (is_string($database) && $database !== '') {
+            $parameters['--database'] = $database;
+        }
+        $exit = Artisan::call('migrate:fresh', $parameters);
         $command->line(Artisan::output());
+        if ($exit !== 0) {
+            return $exit;
+        }
 
         return $this->migrateCall($command, 'migrate');
     }
@@ -283,7 +293,7 @@ class ModuleCli
     public function publish(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            $source = $module->path().'/public';
+            $source = $module->path('public');
             if (!is_dir($source)) {
                 continue;
             }
@@ -301,8 +311,13 @@ class ModuleCli
             mkdir($destination, 0755, true);
         }
         foreach ($this->selected($command) as $module) {
-            foreach (glob($module->path().'/database/migrations/*.php') ?: [] as $file) {
+            foreach (glob($module->path('database/migrations').'/*.php') ?: [] as $file) {
                 $target = $destination.'/'.date('Y_m_d_His').'_'.basename($file);
+                SafePath::confine($file, $module->path());
+                SafePath::confine($target, $this->basePath);
+                if (is_link($file) || is_link($target)) {
+                    throw new \InvalidArgumentException('Refusing to publish symbolic links.');
+                }
                 copy($file, $target);
             }
         }
@@ -314,7 +329,7 @@ class ModuleCli
     public function publishConfig(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            $source = $module->path().'/config';
+            $source = $module->path('config');
             if (!is_dir($source)) {
                 continue;
             }
@@ -329,7 +344,7 @@ class ModuleCli
     public function publishTranslation(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            $source = $module->path().'/lang';
+            $source = $module->path('lang');
             if (!is_dir($source)) {
                 continue;
             }
@@ -349,7 +364,7 @@ class ModuleCli
             'svelte' => 'svelte',
             default => 'vue',
         };
-        $target = $this->basePath.'/resources/js/modules.js';
+        $target = SafePath::confine($this->basePath.'/resources/js/modules.js', $this->basePath);
         if (!is_dir(dirname($target))) {
             mkdir(dirname($target), 0755, true);
         }
@@ -370,7 +385,7 @@ JS;
 
     public function updatePhpunit(Command $command): int
     {
-        $phpunit = $this->basePath.'/phpunit.xml';
+        $phpunit = SafePath::confine($this->basePath.'/phpunit.xml', $this->basePath);
         if (!is_file($phpunit)) {
             $command->error('phpunit.xml was not found.');
 
@@ -438,7 +453,7 @@ JS;
     {
         $legacy = $this->basePath.'/modules_statuses.php';
         $statuses = StatusMigration::convert($legacy);
-        file_put_contents($this->statusesFile(), json_encode($statuses, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES).PHP_EOL);
+        (new \theaddresstechnology\DDD\Modules\Activators\FileActivator($this->statusesFile()))->replace($statuses);
         $command->info('Wrote '.$this->statusesFile());
 
         return 0;
@@ -471,7 +486,7 @@ JS;
     {
         $paths = [];
         foreach ($this->selected($command) as $module) {
-            $path = $module->path().'/database/migrations';
+            $path = $module->path('database/migrations');
             $subpath = $this->optional($command, 'subpath');
             if (is_string($subpath) && $subpath !== '') {
                 $file = SafePath::confinedRelative($path, $subpath);
@@ -488,13 +503,19 @@ JS;
             }
         }
         foreach ($paths as $path) {
-            $parameters = ['--path' => $path, '--force' => (bool) $command->option('force')];
+            $parameters = ['--path' => $path, '--realpath' => true];
+            if ($artisan !== 'migrate:status') {
+                $parameters['--force'] = (bool) $command->option('force');
+            }
             $database = $this->optional($command, 'database');
             if (is_string($database) && $database !== '') {
                 $parameters['--database'] = $database;
             }
-            Artisan::call($artisan, $parameters);
+            $exit = Artisan::call($artisan, $parameters);
             $command->line(trim(Artisan::output()));
+            if ($exit !== 0) {
+                return $exit;
+            }
         }
 
         return 0;
@@ -503,7 +524,7 @@ JS;
     private function selected(Command $command): array
     {
         $name = $this->moduleArgument($command);
-        if ($name !== null && $this->modules->has($name)) {
+        if ($name !== null) {
             return [$this->modules->findOrFail($name)];
         }
 
@@ -619,6 +640,10 @@ JS;
 
     private function copyTree(string $source, string $destination): void
     {
+        if (is_link($source) || is_link($destination)) {
+            throw new \InvalidArgumentException('Refusing to publish symbolic links.');
+        }
+        SafePath::confine($destination, $this->basePath);
         if (!is_dir($destination)) {
             mkdir($destination, 0755, true);
         }
@@ -628,6 +653,10 @@ JS;
             }
             $from = $source.'/'.$item;
             $to = $destination.'/'.$item;
+            if (is_link($from) || is_link($to)) {
+                throw new \InvalidArgumentException('Refusing to publish symbolic links.');
+            }
+            SafePath::confine($to, $this->basePath);
             if (is_dir($from)) {
                 $this->copyTree($from, $to);
             } else {

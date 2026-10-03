@@ -9,7 +9,7 @@ class ModuleAssets
     public static function viewPaths(Module $module, string $publishedRoot): array
     {
         $paths = [];
-        $local = $module->path().'/resources/views';
+        $local = $module->path('resources/views');
         if (is_dir($local)) {
             $paths[] = $local;
         }
@@ -26,7 +26,7 @@ class ModuleAssets
     {
         $paths = [];
         foreach (['lang', 'resources/lang'] as $relative) {
-            $path = $module->path().'/'.$relative;
+            $path = $module->path($relative);
             if (is_dir($path)) {
                 $paths[] = $path;
             }
@@ -42,7 +42,7 @@ class ModuleAssets
 
     public static function configFiles(Module $module): array
     {
-        $root = $module->path().'/config';
+        $root = $module->path('config');
         if (!is_dir($root)) {
             return [];
         }
@@ -61,6 +61,7 @@ class ModuleAssets
             } else {
                 $key = $module->alias().'.'.$key;
             }
+            SafePath::confine($file->getPathname(), $module->path());
             $files[$file->getPathname()] = $key;
         }
 
@@ -69,7 +70,7 @@ class ModuleAssets
 
     public static function migrationPath(Module $module): ?string
     {
-        $path = $module->path().'/database/migrations';
+        $path = $module->path('database/migrations');
 
         return is_dir($path) ? $path : null;
     }
@@ -77,7 +78,7 @@ class ModuleAssets
     public static function componentNamespace(Module $module): ?string
     {
         $namespace = 'Src\\Domain\\'.$module->name().'\\View\\Components';
-        $directory = $module->path().'/View/Components';
+        $directory = $module->path('View/Components');
 
         if (!is_dir($directory) || !SafePath::isQualifiedName($namespace)) {
             return null;

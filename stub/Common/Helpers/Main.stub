@@ -27,9 +27,13 @@ function UploadImages(string $dir, $image, $checkFunction = null) : string
     }
 
     $extension = strtolower((string) $image->getClientOriginalExtension());
-    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
+    $allowed = [
+        'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+        'gif' => 'image/gif', 'webp' => 'image/webp', 'pdf' => 'application/pdf',
+    ];
 
-    if (!in_array($extension, $allowed, true)) {
+    if (!isset($allowed[$extension]) || $image->getMimeType() !== $allowed[$extension]
+        || $image->getSize() > 10 * 1024 * 1024) {
         return '';
     }
 
@@ -56,7 +60,10 @@ function UploadImages(string $dir, $image, $checkFunction = null) : string
  */
 function ShowImage($image, $width = 200, $height = 150) : string
 {
-    if (! is_null($image) && !empty($image) && File::exists(public_path('uploads').'/' . $image)) {
+    $path = is_string($image)
+        ? \theaddresstechnology\DDD\Helper\SafePath::confinedRelative(public_path('uploads'), $image)
+        : null;
+    if ($path !== null && is_file($path)) {
         return asset('uploads/' . $image);
     }
     return "https://place-hold.it/{$width}x{$height}";
@@ -69,16 +76,7 @@ function ShowImage($image, $width = 200, $height = 150) : string
  */
 function userCan(string $permission) : bool
 {
-    static $permissions = null;
-
-    if (is_null($permissions)) {
-        $permissions = auth()->user()->getAllPermissions()->pluck('name')->toArray();
-    }
-
-    // Reset cached roles and permissions
-    app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-    return in_array($permission, $permissions);
+    return auth()->user()?->can($permission) ?? false;
 }
 
 

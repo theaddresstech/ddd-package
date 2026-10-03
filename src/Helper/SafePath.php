@@ -121,10 +121,56 @@ class SafePath
 
     public static function isInside(string $path, string $root): bool
     {
-        $path = self::normalize($path);
-        $root = rtrim(self::normalize($root), '/');
+        if (str_contains($path, "\0") || str_contains($root, "\0")) {
+            return false;
+        }
+
+        $resolvedPath = self::resolve($path);
+        $resolvedRoot = self::resolve($root);
+        if ($resolvedPath === null || $resolvedRoot === null) {
+            return false;
+        }
+
+        return self::hasPrefix(self::normalize($path), self::normalize($root))
+            && self::hasPrefix($resolvedPath, $resolvedRoot);
+    }
+
+    private static function hasPrefix(string $path, string $root): bool
+    {
+        $root = rtrim($root, '/');
 
         return $path === $root || str_starts_with($path, $root.'/');
+    }
+
+    // Resolve the nearest existing ancestor as new output files may not exist yet.
+    // Inspect the original path before normalization so link/../ cannot hide a link.
+    private static function resolve(string $path): ?string
+    {
+        $path = str_replace('\\', '/', $path);
+        $suffix = [];
+        while (!file_exists($path)) {
+            if (is_link($path)) {
+                return null;
+            }
+            $parent = dirname($path);
+            if ($parent === $path) {
+                return null;
+            }
+            array_unshift($suffix, basename($path));
+            $path = $parent;
+        }
+        $resolved = realpath($path);
+
+        return $resolved === false ? null : self::normalize($resolved.'/'.implode('/', $suffix));
+    }
+
+    public static function moduleAlias(string $alias): string
+    {
+        if (!preg_match('/\A[A-Za-z][A-Za-z0-9_-]*\z/', $alias)) {
+            throw new \InvalidArgumentException('Invalid module alias.');
+        }
+
+        return $alias;
     }
 
     public static function confine(string $path, string $root): string

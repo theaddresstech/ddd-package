@@ -65,9 +65,19 @@ class EntitiesRelations extends Test
         $class = 'DddRelationProbe'.substr(sha1($trait), 0, 16);
 
         if (!class_exists($class, false)) {
-            $file = sys_get_temp_dir().DIRECTORY_SEPARATOR.$class.'.php';
-            file_put_contents($file, "<?php\nclass {$class} extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    use {$trait};\n}\n");
-            require_once $file;
+            $file = tempnam(sys_get_temp_dir(), 'ddd-relation-');
+            if ($file === false) {
+                throw new \RuntimeException('Unable to create relation probe.');
+            }
+            try {
+                $content = "<?php\nclass {$class} extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    use {$trait};\n}\n";
+                if (file_put_contents($file, $content) !== strlen($content)) {
+                    throw new \RuntimeException('Unable to write relation probe.');
+                }
+                require $file;
+            } finally {
+                unlink($file);
+            }
         }
 
         return new $class;

@@ -63,6 +63,21 @@ abstract class EloquentRepository extends BaseRepository
      protected $allowedFilterScopes = [];
 
 
+    public function getAllowedFields(): array
+    {
+        return $this->allowedFields;
+    }
+
+    public function getAllowedIncludes(): array
+    {
+        return $this->allowedIncludes;
+    }
+
+    public function getAllowedSorts(): array
+    {
+        return $this->allowedSorts;
+    }
+
     /**
      * @param Application $app
      */

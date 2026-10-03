@@ -60,6 +60,8 @@ class {{NAME}}Controller extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', {{NAME}}::class);
+
         try{
            $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
 
@@ -86,6 +88,8 @@ class {{NAME}}Controller extends Controller
      */
     public function store({{NAME_REQUEST_STORE}} $request)
     {
+        $this->authorize('create', {{NAME}}::class);
+
         try{
            DB::beginTransaction();
 
@@ -111,6 +115,8 @@ class {{NAME}}Controller extends Controller
      */
     public function show({{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('view', ${{VIEW_RESOURCE}});
+
        try {
            ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}}->id);
 
@@ -133,6 +139,8 @@ class {{NAME}}Controller extends Controller
      */
     public function update({{NAME_REQUEST_UPDATE}} $request,{{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('update', ${{VIEW_RESOURCE}});
+
         try{
             DB::beginTransaction();
 
@@ -159,6 +167,8 @@ class {{NAME}}Controller extends Controller
      */
     public function destroy({{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('delete', ${{VIEW_RESOURCE}});
+
         try{
            ${{VIEW_RESOURCE}}->delete();
 

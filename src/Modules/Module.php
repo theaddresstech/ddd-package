@@ -17,6 +17,7 @@ class Module
         private array $files,
         private bool $enabled,
     ) {
+        SafePath::moduleAlias($alias);
     }
 
     public static function fromManifest(string $path, array $manifest, bool $enabled): self

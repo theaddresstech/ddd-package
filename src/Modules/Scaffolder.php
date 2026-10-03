@@ -46,7 +46,7 @@ class Scaffolder
     public function identity(string $rawName, ?string $alias = null): string
     {
         $name = SafePath::className($rawName);
-        $alias = $alias ?: strtolower($name);
+        $alias = SafePath::moduleAlias($alias ?: strtolower($name));
         $path = $this->modulesPath.'/'.$name;
         $namespace = 'Src\\Domain\\'.$name;
         $this->directory($path);
@@ -167,7 +167,12 @@ class Scaffolder
 
     private function folder(string $kind): string
     {
-        return (string) ($this->generators[$kind]['path'] ?? self::defaultGenerators()[$kind]['path'] ?? 'Classes');
+        $folder = (string) ($this->generators[$kind]['path'] ?? self::defaultGenerators()[$kind]['path'] ?? 'Classes');
+        if (!preg_match('/\A[A-Za-z_][A-Za-z0-9_]*(\/[A-Za-z_][A-Za-z0-9_]*)*\z/', $folder)) {
+            throw new \InvalidArgumentException('Invalid generator folder.');
+        }
+
+        return $folder;
     }
 
     private function manifest(string $name, string $alias, string $provider): array
@@ -378,6 +383,7 @@ JS;
 
     private function directory(string $path): void
     {
+        SafePath::confine($path, $this->modulesPath);
         if (!is_dir($path) && !mkdir($path, 0755, true) && !is_dir($path)) {
             throw new \RuntimeException('Unable to create module directory.');
         }
@@ -388,12 +394,13 @@ JS;
         $this->directory($path);
         $keep = $path.'/.gitkeep';
         if (!is_file($keep)) {
-            file_put_contents($keep, '');
+            $this->file($keep, '');
         }
     }
 
     private function file(string $path, string $contents): void
     {
+        SafePath::confine($path, $this->modulesPath);
         $this->directory(dirname($path));
         file_put_contents($path, $contents);
     }
