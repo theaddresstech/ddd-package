@@ -78,7 +78,7 @@ class SafePath
     public static function className(string $name): string
     {
         $name = preg_replace('/[^A-Za-z0-9]+/', ' ', $name) ?? '';
-        $name = str_replace(' ', '', ucwords(strtolower(trim($name))));
+        $name = str_replace(' ', '', ucwords(trim($name)));
 
         if (!self::isClassName($name) || !preg_match('/^[A-Za-z]/', $name)) {
             throw new \InvalidArgumentException('Invalid class name.');

@@ -6,9 +6,11 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 use ReflectionClass;
 use ReflectionMethod;
+use Symfony\Component\Process\Process;
 use theaddresstechnology\DDD\Helper\SafePath;
 use theaddresstechnology\DDD\Modules\ComposerTasks;
 use theaddresstechnology\DDD\Modules\Module;
+use theaddresstechnology\DDD\Modules\ModuleAssets;
 use theaddresstechnology\DDD\Modules\Repository;
 use theaddresstechnology\DDD\Modules\Scaffolder;
 use theaddresstechnology\DDD\Modules\StatusMigration;
@@ -53,7 +55,10 @@ class ModuleCli
         if (!is_file($statuses)) {
             (new \theaddresstechnology\DDD\Modules\Activators\FileActivator($statuses))->replace([]);
         }
-        ComposerTasks::ensureMergeInclude($this->basePath.'/composer.json', 'src/Domain/*/composer.json');
+        if (!ComposerTasks::ensureMergeInclude($this->basePath.'/composer.json', 'src/Domain/*/composer.json')) {
+            $command->error('A valid application composer.json is required to configure module autoloading.');
+            return 1;
+        }
         $command->info('Module directories are ready.');
 
         return 0;
@@ -190,9 +195,10 @@ class ModuleCli
 
             return 1;
         }
-        $files = glob($module->path().'/lang/*.php') ?: [];
+        $files = glob($module->path('lang').'/*.php') ?: [];
         $locales = [];
         foreach ($files as $file) {
+            SafePath::confine($file, $module->path());
             $data = include $file;
             $locales[basename($file, '.php')] = is_array($data) ? $this->flatten($data) : [];
         }
@@ -257,11 +263,26 @@ class ModuleCli
     public function seed(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            foreach (glob($module->path().'/database/seeders/*.php') ?: [] as $file) {
-                $class = 'Src\\Domain\\'.$module->name().'\\Database\\Seeders\\'.basename($file, '.php');
+            $seeders = array_merge(glob($module->path('database/seeders').'/*.php') ?: [], glob($module->path('Database/Seeds').'/*.php') ?: []);
+            foreach ($seeders as $file) {
+                SafePath::confine($file, $module->path());
+                $folder = str_contains($file, '/Database/Seeds/') ? 'Seeds' : 'Seeders';
+                $class = 'Src\\Domain\\'.$module->name().'\\Database\\'.$folder.'\\'.basename($file, '.php');
+                if (!class_exists($class)) {
+                    require_once $file;
+                }
                 if (class_exists($class)) {
-                    Artisan::call('db:seed', ['--class' => $class, '--force' => (bool) $command->option('force')]);
+                    $parameters = ['--class' => $class, '--force' => (bool) $command->option('force')];
+                    if ($database = $this->optional($command, 'database')) {
+                        $parameters['--database'] = $database;
+                    }
+                    $exit = Artisan::call('db:seed', $parameters);
                     $command->line(trim(Artisan::output()));
+                    if ($exit !== 0) {
+                        return $exit;
+                    }
+                } else {
+                    throw new \RuntimeException('Seeder class does not match its module namespace: '.$class);
                 }
             }
         }
@@ -284,10 +305,10 @@ class ModuleCli
 
             return 0;
         }
-        Artisan::call('model:prune', ['--model' => $models]);
+        $exit = Artisan::call('model:prune', ['--model' => $models]);
         $command->line(Artisan::output());
 
-        return 0;
+        return $exit;
     }
 
     public function publish(Command $command): int
@@ -306,19 +327,31 @@ class ModuleCli
 
     public function publishMigration(Command $command): int
     {
-        $destination = $this->basePath.'/database/migrations';
+        $destination = SafePath::confine($this->basePath.'/database/migrations', $this->basePath);
         if (!is_dir($destination)) {
             mkdir($destination, 0755, true);
         }
         foreach ($this->selected($command) as $module) {
-            foreach (glob($module->path('database/migrations').'/*.php') ?: [] as $file) {
-                $target = $destination.'/'.date('Y_m_d_His').'_'.basename($file);
+            $migrations = ModuleAssets::migrationPath($module);
+            if ($migrations === null) {
+                continue;
+            }
+            foreach (glob($migrations.'/*.php') ?: [] as $file) {
+                $target = $destination.'/'.basename($file);
                 SafePath::confine($file, $module->path());
                 SafePath::confine($target, $this->basePath);
                 if (is_link($file) || is_link($target)) {
                     throw new \InvalidArgumentException('Refusing to publish symbolic links.');
                 }
-                copy($file, $target);
+                if (is_file($target)) {
+                    if (hash_file('sha256', $file) === hash_file('sha256', $target)) {
+                        continue;
+                    }
+                    throw new \RuntimeException('A different migration already exists: '.basename($target));
+                }
+                if (!copy($file, $target)) {
+                    throw new \RuntimeException('Unable to publish migration.');
+                }
             }
         }
         $command->info('Published module migrations.');
@@ -329,12 +362,24 @@ class ModuleCli
     public function publishConfig(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            $source = $module->path('config');
-            if (!is_dir($source)) {
-                continue;
+            foreach (ModuleAssets::configFiles($module) as $file => $key) {
+                $relative = substr($file, strlen($module->path('config')) + 1);
+                $relative = $relative === 'config.php' ? $module->alias().'.php' : $module->alias().'/'.$relative;
+                $target = SafePath::confine($this->basePath.'/config/'.$relative, $this->basePath);
+                if (is_link($file) || is_link($target)) {
+                    throw new \InvalidArgumentException('Refusing to publish symbolic links.');
+                }
+                if (is_file($target) && !$command->option('force')) {
+                    $command->warn('Preserved existing '.$target);
+                    continue;
+                }
+                if (!is_dir(dirname($target))) {
+                    mkdir(dirname($target), 0755, true);
+                }
+                if (!copy($file, $target)) {
+                    throw new \RuntimeException('Unable to publish module configuration.');
+                }
             }
-            $target = $this->basePath.'/config/'.$module->alias();
-            $this->copyTree($source, $target);
         }
         $command->info('Published module config.');
 
@@ -344,11 +389,13 @@ class ModuleCli
     public function publishTranslation(Command $command): int
     {
         foreach ($this->selected($command) as $module) {
-            $source = $module->path('lang');
-            if (!is_dir($source)) {
-                continue;
+            foreach (['lang', 'resources/lang'] as $relative) {
+                $source = $module->path($relative);
+                if (is_dir($source)) {
+                    $this->copyTree($source, $command->getLaravel()->langPath('vendor/'.$module->alias()));
+                    break;
+                }
             }
-            $this->copyTree($source, $this->basePath.'/resources/lang/modules/'.$module->alias());
         }
         $command->info('Published module translations.');
 
@@ -451,6 +498,10 @@ JS;
 
     public function migrateV6(Command $command): int
     {
+        if (is_file($this->statusesFile()) && !$command->option('force')) {
+            $command->error('A status registry already exists. Use --force only after reviewing the legacy states.');
+            return 1;
+        }
         $legacy = $this->basePath.'/modules_statuses.php';
         $statuses = StatusMigration::convert($legacy);
         (new \theaddresstechnology\DDD\Modules\Activators\FileActivator($this->statusesFile()))->replace($statuses);
@@ -486,7 +537,10 @@ JS;
     {
         $paths = [];
         foreach ($this->selected($command) as $module) {
-            $path = $module->path('database/migrations');
+            $path = ModuleAssets::migrationPath($module);
+            if ($path === null) {
+                continue;
+            }
             $subpath = $this->optional($command, 'subpath');
             if (is_string($subpath) && $subpath !== '') {
                 $file = SafePath::confinedRelative($path, $subpath);
@@ -502,8 +556,10 @@ JS;
                 $paths[] = $path;
             }
         }
-        foreach ($paths as $path) {
-            $parameters = ['--path' => $path, '--realpath' => true];
+        if ($paths !== []) {
+            // One invocation gives all selected modules a shared migration batch
+            // and lets rollback/reset see every matching migration file.
+            $parameters = ['--path' => $paths, '--realpath' => true];
             if ($artisan !== 'migrate:status') {
                 $parameters['--force'] = (bool) $command->option('force');
             }
@@ -528,7 +584,7 @@ JS;
             return [$this->modules->findOrFail($name)];
         }
 
-        return $this->modules->ordered();
+        return $this->modules->enabled();
     }
 
     private function requireModule(Command $command): Module
@@ -566,22 +622,11 @@ JS;
 
     private function composer(Command $command, array $arguments): int
     {
-        $escaped = implode(' ', array_map('escapeshellarg', $arguments));
-        $descriptor = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-        $process = proc_open($escaped, $descriptor, $pipes, $this->basePath);
-        if (!is_resource($process)) {
-            $command->error('Unable to run Composer.');
-
-            return 1;
-        }
-        $output = stream_get_contents($pipes[1]);
-        $error = stream_get_contents($pipes[2]);
-        fclose($pipes[1]);
-        fclose($pipes[2]);
-        $exit = proc_close($process);
-        $command->line(trim($output."\n".$error));
-
-        return $exit === 0 ? 0 : 1;
+        $process = new Process($arguments, $this->basePath);
+        $process->setTimeout(null);
+        return $process->run(function (string $type, string $output) use ($command): void {
+            $command->getOutput()->write($output);
+        });
     }
 
     private function statusesFile(): string
@@ -595,7 +640,7 @@ JS;
 
     private function activeFile(): string
     {
-        return $this->basePath.'/storage/framework/ddd-active-module';
+        return SafePath::confine($this->basePath.'/storage/framework/ddd-active-module', $this->basePath);
     }
 
     private function active(): string

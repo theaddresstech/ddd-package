@@ -7,7 +7,7 @@ use theaddresstechnology\DDD\Modules\Console\ModuleCli;
 
 class PublishConfigCommand extends Command
 {
-    protected $signature = 'module:publish-config {module?}';
+    protected $signature = 'module:publish-config {module?} {--force : Replace existing published configuration}';
 
     protected $description = 'Copy module config into the application';
 

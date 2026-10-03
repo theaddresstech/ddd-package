@@ -65,7 +65,7 @@ class GeneratedHttpSecurityTest extends GeneratedApplication
         $other = User::create(['name' => 'Other', 'email' => 'other@example.test', 'password' => 'secret-password']);
         $this->actingAs($owner);
         Gate::policy(User::class, OwnUserPolicy::class);
-        $controller = new \Src\Domain\User\Http\Controllers\UserController($this->createMock(\Src\Domain\User\Repositories\Contracts\UserRepository::class));
+        $controller = new \Src\Domain\User\Http\Controllers\UserController($this->createStub(\Src\Domain\User\Repositories\Contracts\UserRepository::class));
         try {
             $controller->destroy($other);
             $this->fail('Another user was deleted.');

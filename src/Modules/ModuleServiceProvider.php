@@ -59,18 +59,12 @@ abstract class ModuleServiceProvider extends ServiceProvider
 
     protected function bootTranslations(Module $module): void
     {
-        $published = function_exists('resource_path')
-            ? resource_path('lang/modules')
-            : $module->path().'/published-lang';
-        if (!is_dir($published) && function_exists('base_path')) {
-            $legacy = base_path('resources/lang/modules');
-            if (is_dir($legacy)) {
-                $published = $legacy;
+        $namespaceRegistered = false;
+        foreach (ModuleAssets::translationPaths($module, $this->app->langPath('vendor')) as $path) {
+            if (!$namespaceRegistered) {
+                $this->loadTranslationsFrom($path, $module->alias());
+                $namespaceRegistered = true;
             }
-        }
-
-        foreach (ModuleAssets::translationPaths($module, $published) as $path) {
-            $this->loadTranslationsFrom($path, $module->alias());
             $this->loadJsonTranslationsFrom($path);
         }
     }

@@ -20,10 +20,12 @@ class GeneratedScaffoldTest extends TestCase
         $loader->addPsr4('Src\\', $root.'/src');
         $loader->register();
         try {
-            foreach (['src', 'config', 'bootstrap', 'database/migrations', 'database/seeders', 'routes', 'public', 'resources/views'] as $directory) {
+            foreach (['src', 'config', 'bootstrap/cache', 'database/migrations', 'database/seeders', 'routes', 'public', 'resources/views', 'storage/framework/views', 'storage/framework/cache/data', 'storage/framework/sessions', 'storage/logs'] as $directory) {
                 mkdir($root.'/'.$directory, 0755, true);
             }
             file_put_contents($root.'/src/existing.php', '<?php // Existing application');
+            file_put_contents($root.'/routes/console.php', '<?php');
+            file_put_contents($root.'/composer.json', json_encode(['name' => 'ddd/generated-test', 'autoload' => ['psr-4' => ['Src\\' => 'src/']]]));
             $this->app->setBasePath($root);
             $this->app->usePublicPath($root.'/public');
             config(['ddd' => require __DIR__.'/../config/ddd.php']);
@@ -41,6 +43,21 @@ class GeneratedScaffoldTest extends TestCase
             foreach (File::allFiles($root.'/src') as $file) {
                 $this->assertDoesNotMatchRegularExpression('/graphql|lighthouse/i', $file->getContents());
             }
+            $autoload = var_export(realpath(__DIR__.'/../vendor/autoload.php'), true);
+            file_put_contents($root.'/boot-check.php', '<?php $loader = require '.$autoload.';
+                $loader->addPsr4("Src\\\\", __DIR__."/src");
+                $app = require __DIR__."/bootstrap/app.php";
+                exit($app->handleCommand(new \\Symfony\\Component\\Console\\Input\\ArgvInput(["artisan", "route:list", "--json"])));
+            ');
+            $process = new \Symfony\Component\Process\Process([PHP_BINARY, $root.'/boot-check.php'], $root, [
+                'APP_ENV' => 'testing', 'APP_KEY' => 'base64:'.base64_encode(random_bytes(32)),
+                'DB_CONNECTION' => 'sqlite', 'DB_DATABASE' => ':memory:',
+                'CACHE_STORE' => 'array', 'SESSION_DRIVER' => 'array', 'QUEUE_CONNECTION' => 'sync',
+                'COMPOSER_VENDOR_DIR' => realpath(__DIR__.'/../vendor'),
+            ]);
+            $this->assertSame(0, $process->run(), $process->getOutput().$process->getErrorOutput());
+            $routes = json_decode($process->getOutput(), true, 512, JSON_THROW_ON_ERROR);
+            $this->assertContains('api/login', array_column($routes, 'uri'));
         } finally {
             $loader->unregister();
             $this->app->setBasePath($base);

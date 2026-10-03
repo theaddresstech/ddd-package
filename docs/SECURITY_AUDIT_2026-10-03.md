@@ -1,4 +1,8 @@
-# Package security audit — 2026-10-03
+# Initial package security audit — 2026-10-03
+
+This is the initial audit snapshot before the v2 dependency/features work. Historical
+versions, test counts and PR states below describe that checkpoint. See the
+[final v2 audit](V2_AUDIT.md) for the release review and current validation.
 
 ## Scope and repository state
 

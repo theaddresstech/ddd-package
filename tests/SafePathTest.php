@@ -64,4 +64,10 @@ class SafePathTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         SafePath::className('...');
     }
+
+    public function test_class_names_preserve_existing_camel_case(): void
+    {
+        $this->assertSame('SalesReport', SafePath::className('SalesReport'));
+        $this->assertSame('SalesReport', SafePath::className('sales report'));
+    }
 }

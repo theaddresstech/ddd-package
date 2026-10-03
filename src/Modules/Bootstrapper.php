@@ -21,9 +21,10 @@ class Bootstrapper
             }
 
             foreach ($module->providers() as $provider) {
-                if (SafePath::isQualifiedName($provider) && class_exists($provider)) {
-                    $this->app->register($provider);
+                if (!SafePath::isQualifiedName($provider) || !class_exists($provider)) {
+                    throw new \RuntimeException('Module provider cannot be autoloaded: '.$provider.'. Configure Src\\ autoload and run composer dump-autoload.');
                 }
+                $this->app->register($provider);
             }
         }
     }

@@ -83,10 +83,71 @@ class ModuleCommandSecurityTest extends TestCase
         return $command;
     }
 
+    public function test_seed_propagates_database_and_failure_and_skips_disabled_modules_by_default(): void
+    {
+        $states = new FileActivator($this->root.'/statuses.json');
+        (new Scaffolder($this->root.'/modules'))->make('SeedProbe', false, true, false, $states);
+        (new Scaffolder($this->root.'/modules'))->make('DisabledProbe', false, true, true, $states);
+        $command = new \theaddresstechnology\DDD\Modules\Console\Commands\SeedCommand();
+        $command->setLaravel($this->app);
+        (new \ReflectionProperty($command, 'input'))->setValue($command, new ArrayInput(['--force' => true, '--database' => 'testing'], $command->getDefinition()));
+        $command->setOutput(new \Illuminate\Console\OutputStyle(new ArrayInput([]), new \Symfony\Component\Console\Output\BufferedOutput()));
+        Artisan::swap(\Mockery::mock(\Illuminate\Contracts\Console\Kernel::class));
+        Artisan::shouldReceive('call')->once()->with('db:seed', ['--class' => 'Src\\Domain\\SeedProbe\\Database\\Seeders\\SeedProbeDatabaseSeeder', '--force' => true, '--database' => 'testing'])->andReturn(7);
+        Artisan::shouldReceive('output')->once()->andReturn('Seed failed');
+        $this->assertSame(7, $this->cli()->seed($command));
+    }
+
+    public function test_legacy_migration_paths_are_passed_together_for_consistent_batches(): void
+    {
+        $states = new FileActivator($this->root.'/statuses.json');
+        $scaffolder = new Scaffolder($this->root.'/modules');
+        $scaffolder->make('First', true, false, false, $states);
+        $scaffolder->make('Second', true, false, false, $states);
+        mkdir($this->root.'/modules/First/Database/Migrations', 0755, true);
+        mkdir($this->root.'/modules/Second/database/migrations', 0755, true);
+        $command = new \theaddresstechnology\DDD\Modules\Console\Commands\MigrateCommand();
+        $command->setLaravel($this->app);
+        (new \ReflectionProperty($command, 'input'))->setValue($command, new ArrayInput(['--force' => true], $command->getDefinition()));
+        $command->setOutput(new \Illuminate\Console\OutputStyle(new ArrayInput([]), new \Symfony\Component\Console\Output\BufferedOutput()));
+        Artisan::swap(\Mockery::mock(\Illuminate\Contracts\Console\Kernel::class));
+        Artisan::shouldReceive('call')->once()->with('migrate', \Mockery::on(function (array $parameters): bool {
+            $this->assertSame([
+                fileinode($this->root.'/modules/First/Database/Migrations'),
+                fileinode($this->root.'/modules/Second/database/migrations'),
+            ], array_map('fileinode', $parameters['--path']));
+            return $parameters['--realpath'] === true && $parameters['--force'] === true;
+        }))->andReturn(0);
+        Artisan::shouldReceive('output')->once()->andReturn('Done');
+        $this->assertSame(0, $this->cli()->migrate($command));
+    }
+
     private function cli(): ModuleCli
     {
         $modules = new Repository($this->root, ['paths' => ['modules' => $this->root.'/modules']], new FileActivator($this->root.'/statuses.json'));
 
         return new ModuleCli($modules, new Scaffolder($this->root.'/modules'), $this->root);
+    }
+
+    public function test_publishing_preserves_migration_names_and_configuration_overrides(): void
+    {
+        $path = (new Scaffolder($this->root.'/modules'))->make('Published', false, true, false);
+        $migration = '2026_01_01_000001_create_example_table.php';
+        file_put_contents($path.'/database/migrations/'.$migration, '<?php // migration');
+        foreach ([
+            new \theaddresstechnology\DDD\Modules\Console\Commands\PublishMigrationCommand(),
+            new \theaddresstechnology\DDD\Modules\Console\Commands\PublishConfigCommand(),
+        ] as $command) {
+            $command->setLaravel($this->app);
+            (new \ReflectionProperty($command, 'input'))->setValue($command, new ArrayInput(['module' => 'Published'], $command->getDefinition()));
+            $command->setOutput(new \Illuminate\Console\OutputStyle(new ArrayInput([]), new \Symfony\Component\Console\Output\BufferedOutput()));
+            $command->handle($this->cli());
+        }
+        $this->assertFileExists($this->root.'/database/migrations/'.$migration);
+        $this->assertFileExists($this->root.'/config/published.php');
+        $this->assertFileDoesNotExist($this->root.'/config/published/config.php');
+        file_put_contents($this->root.'/config/published.php', '<?php return ["preserve" => true];');
+        $command->handle($this->cli());
+        $this->assertSame(['preserve' => true], require $this->root.'/config/published.php');
     }
 }

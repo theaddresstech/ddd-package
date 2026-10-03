@@ -9,14 +9,13 @@ class ModuleAssets
     public static function viewPaths(Module $module, string $publishedRoot): array
     {
         $paths = [];
-        $local = $module->path('resources/views');
-        if (is_dir($local)) {
-            $paths[] = $local;
-        }
-
         $published = rtrim($publishedRoot, '/').'/'.$module->alias();
         if (is_dir($published)) {
             $paths[] = $published;
+        }
+        $local = $module->path('resources/views');
+        if (is_dir($local)) {
+            $paths[] = $local;
         }
 
         return $paths;
@@ -29,6 +28,7 @@ class ModuleAssets
             $path = $module->path($relative);
             if (is_dir($path)) {
                 $paths[] = $path;
+                break; // Prefer lang/; resources/lang is the legacy fallback.
             }
         }
 
@@ -70,9 +70,13 @@ class ModuleAssets
 
     public static function migrationPath(Module $module): ?string
     {
-        $path = $module->path('database/migrations');
-
-        return is_dir($path) ? $path : null;
+        foreach (['database/migrations', 'Database/Migrations'] as $relative) {
+            $path = $module->path($relative);
+            if (is_dir($path)) {
+                return $path;
+            }
+        }
+        return null;
     }
 
     public static function componentNamespace(Module $module): ?string
