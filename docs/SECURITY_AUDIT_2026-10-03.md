@@ -86,6 +86,25 @@ make two nullable probe-test parameters explicit for PHP 8.4+.
 
 ## Consumer work and remaining limits
 
+### Compatibility follow-up
+
+A release review reproduced a package-startup TypeError with configuration cached
+before module support existed: Laravel skipped merging defaults, so the status
+activator received a null file path. The service provider now fills missing module
+defaults in memory while preserving application overrides. Three regressions cover
+an old cache without module settings, unrelated application module settings, and
+custom cached paths/statuses with a disabled module and an empty command list.
+The expanded local suite passes **56 tests, 346 assertions** on PHP **8.5.11**
+and **8.4.25**.
+
+The [proposed 2.0 upgrade guide](UPGRADE_2.0.md) records intentional breaks,
+dependency-major requirements and consumer validation steps. The current resolved
+dependencies have no pending updates within their constraints. Latest-major
+upgrades, consuming application updates, merges and a new release have not been
+performed as part of this compatibility review.
+
+### Remaining consumer work
+
 1. Updating this generator does not patch existing applications or remove their
    GraphQL endpoints. Apply the template changes to existing generated code and
    remove old GraphQL routes/imports/dependencies separately. Implement actual

@@ -5,6 +5,10 @@ schemas, Lighthouse configuration, and test templates have been removed.
 
 Security and upgrade notes:
 
+This PR stack contains breaking changes and is proposed for a 2.0 release.
+Read the [compatibility and dependency assessment](docs/UPGRADE_2.0.md) before
+upgrading an existing application. Do not use scaffold regeneration as an upgrade.
+
 - Generated CRUD controllers authorize every action through a model policy. New
   CRUD policies deny access until you implement your application's permissions
   and ownership or tenant checks. Existing controllers need these changes applied

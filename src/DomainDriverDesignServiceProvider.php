@@ -28,7 +28,14 @@ class DomainDriverDesignServiceProvider extends ServiceProvider{
     }
 
     public function register(){
-        $this->mergeConfigFrom(__DIR__.'/../config/modules.php', 'modules');
+        // A consumer's cached configuration may predate module support. Laravel's
+        // mergeConfigFrom skips cached configurations, leaving startup without the
+        // required activator settings. Fill missing top-level defaults in memory
+        // while preserving every application override, including empty arrays.
+        $this->app['config']->set('modules', array_merge(
+            require __DIR__.'/../config/modules.php',
+            $this->app['config']->get('modules', []),
+        ));
         $this->app->singleton(Activator::class, function ($app) {
             $config = $app['config']->get('modules.activators.file');
             $class = $config['class'] ?? \theaddresstechnology\DDD\Modules\Activators\FileActivator::class;
