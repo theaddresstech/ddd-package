@@ -17,6 +17,7 @@ class Admin
     public function handle($request, Closure $next)
     {
         if (auth()->check()) {
+            abort_unless(auth()->user()->can('access-admin'), 403);
             return $next($request);
         }
 

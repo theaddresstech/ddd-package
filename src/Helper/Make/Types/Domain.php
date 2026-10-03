@@ -91,6 +91,9 @@ class Domain extends Maker
 
         $this->createTests();
 
+        (new \theaddresstechnology\DDD\Modules\Scaffolder(base_path('src/Domain')))
+            ->identity($this->name, $this->alias);
+
         return true;
     }
 

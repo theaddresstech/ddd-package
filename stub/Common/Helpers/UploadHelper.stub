@@ -14,9 +14,12 @@ class UploadHelper
 
     public static function UploadUpdate($oldFile, string $dir, UploadedFile $image, string $checkFunction = null) : string
     {
-        static::unlink($oldFile);
+        $uploaded = UploadImages($dir, $image, $checkFunction);
+        if ($uploaded !== '') {
+            static::unlink($oldFile);
+        }
 
-        return UploadImages($dir, $image, $checkFunction);
+        return $uploaded;
     }
 
     public static function MultiUpload(array $images, string $dir, string $checkFunction = null) : string

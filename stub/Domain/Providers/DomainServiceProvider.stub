@@ -6,6 +6,8 @@ use Src\Infrastructure\AbstractProviders\ServiceProvider;
 
 class DomainServiceProvider extends ServiceProvider
 {
+    protected ?string $moduleName = '{{NAME}}';
+
     /**
      * Alias for load Translations and views.
      *

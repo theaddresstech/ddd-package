@@ -26,7 +26,7 @@ abstract class Test
         }";
     }
 
-    public function createBasicTestCases(object $testable = null)
+    public function createBasicTestCases(?object $testable = null)
     {
         $this->testCases['basic'] = [];
         $basicTestCases = $this->getBaseTestCases();
@@ -44,7 +44,7 @@ abstract class Test
         );
     }
 
-    private function formateTestCases(string $containerKey, array $basicTestCases, object $testable = null)
+    private function formateTestCases(string $containerKey, array $basicTestCases, ?object $testable = null)
     {
 
         foreach ($basicTestCases as $testCase) {

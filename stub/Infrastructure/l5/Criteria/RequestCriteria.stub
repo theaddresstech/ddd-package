@@ -47,6 +47,14 @@ class RequestCriteria implements CriteriaInterface
         $with = $this->request->get(config('repository.criteria.params.with', 'with'), null);
         $withCount = $this->request->get(config('repository.criteria.params.withCount', 'withCount'), null);
         $searchJoin = $this->request->get(config('repository.criteria.params.searchJoin', 'searchJoin'), null);
+        foreach ([$search, $orderBy, $sortedBy, $with, $withCount, $searchJoin] as $value) {
+            if ($value !== null && !is_string($value)) {
+                throw new \InvalidArgumentException('Query parameters must be strings.');
+            }
+        }
+        $allowedFields = method_exists($repository, 'getAllowedFields') ? $repository->getAllowedFields() : [];
+        $allowedIncludes = method_exists($repository, 'getAllowedIncludes') ? $repository->getAllowedIncludes() : [];
+        $allowedSorts = method_exists($repository, 'getAllowedSorts') ? $repository->getAllowedSorts() : [];
         $sortedBy = SafePath::sortDirection((string) $sortedBy) ?? 'asc';
 
         if ($search && is_array($fieldsSearchable) && count($fieldsSearchable)) {
@@ -56,7 +64,7 @@ class RequestCriteria implements CriteriaInterface
             $searchData = $this->parserSearchData($search);
             $fields = $this->parserFieldsSearch($fieldsSearchable, $searchFields, array_keys($searchData));
             $search = $this->parserSearchValue($search);
-            $modelForceAndWhere = strtolower($searchJoin) === 'and';
+            $modelForceAndWhere = strtolower((string) $searchJoin) === 'and';
 
             $model = $model->where(function ($query) use ($fields, $search, $searchData, $isFirstField, $modelForceAndWhere) {
                 /** @var Builder $query */
@@ -153,7 +161,7 @@ class RequestCriteria implements CriteriaInterface
         }
 
         if (isset($orderBy) && !empty($orderBy)) {
-            $orderBySplit = explode(';', $orderBy);
+            $orderBySplit = $this->allowedValues(explode(';', $orderBy), $allowedSorts);
             if(count($orderBySplit) > 1) {
                 $sortedBySplit = explode(';', $sortedBy);
                 foreach ($orderBySplit as $orderBySplitItemKey => $orderBySplitItem) {
@@ -170,21 +178,21 @@ class RequestCriteria implements CriteriaInterface
                 $filter = explode(';', $filter);
             }
 
-            $filter = array_values(array_filter($filter, static fn ($column) => SafePath::isIdentifier((string) $column)));
+            $filter = $this->allowedValues($filter, $allowedFields);
             if ($filter !== []) {
                 $model = $model->select($filter);
             }
         }
 
         if ($with) {
-            $with = array_values(array_filter(explode(';', $with), static fn ($relation) => SafePath::isRelation((string) $relation)));
+            $with = $this->allowedValues(explode(';', $with), $allowedIncludes);
             if ($with !== []) {
                 $model = $model->with($with);
             }
         }
 
         if ($withCount) {
-            $withCount = array_values(array_filter(explode(';', $withCount), static fn ($relation) => SafePath::isRelation((string) $relation)));
+            $withCount = $this->allowedValues(explode(';', $withCount), $allowedIncludes);
             if ($withCount !== []) {
                 $model = $model->withCount($withCount);
             }
@@ -197,6 +205,27 @@ class RequestCriteria implements CriteriaInterface
      * @param $model
      * @param $orderBy
      * @param $sortedBy
+     * @return mixed
+     */
+    private function allowedValues($values, array $allowed): array
+    {
+        if (!is_array($values)) {
+            throw new \InvalidArgumentException('Query fields are not allowed.');
+        }
+        foreach ($values as $value) {
+            if (!is_string($value) || !SafePath::isRelation($value) || !in_array($value, $allowed, true)) {
+                throw new \InvalidArgumentException('Query fields are not allowed.');
+            }
+        }
+
+        return array_values($values);
+    }
+
+    /**
+     * @param $model
+     * @param $orderBy
+     * @param $sortedBy
+     *
      * @return mixed
      */
     protected function parserFieldsOrderBy($model, $orderBy, $sortedBy)
@@ -268,14 +297,22 @@ class RequestCriteria implements CriteriaInterface
             $fields = [];
 
             foreach ($searchFields as $index => $field) {
+                if (!is_string($field)) {
+                    throw new \InvalidArgumentException('Search fields are not allowed.');
+                }
                 $field_parts = explode(':', $field);
-                $temporaryIndex = array_search($field_parts[0], $originalFields);
+                $temporaryIndex = array_search($field_parts[0], $originalFields, true);
+                if (!array_key_exists($field_parts[0], $originalFields) && $temporaryIndex === false) {
+                    throw new \InvalidArgumentException('Search fields are not allowed.');
+                }
 
                 if (count($field_parts) == 2) {
                     $operator = SafePath::queryOperator($field_parts[1]);
                     if ($operator !== null && in_array($operator, array_map('strtolower', $acceptedConditions), true) && SafePath::isRelation($field_parts[0])) {
                         $field_parts[1] = $operator;
-                        unset($originalFields[$temporaryIndex]);
+                        if ($temporaryIndex !== false) {
+                            unset($originalFields[$temporaryIndex]);
+                        }
                         $field = $field_parts[0];
                         $condition = $field_parts[1];
                         $originalFields[$field] = $condition;

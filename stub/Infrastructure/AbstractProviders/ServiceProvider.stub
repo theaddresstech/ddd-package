@@ -13,6 +13,16 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 abstract class ServiceProvider extends LaravelServiceProvider
 {
+    protected ?string $moduleName = null;
+
+    protected function moduleIsEnabled(): bool
+    {
+        $repository = \theaddresstechnology\DDD\Modules\Repository::class;
+
+        return $this->moduleName === null || !$this->app->bound($repository)
+            || !$this->app->make($repository)->isDisabled($this->moduleName);
+    }
+
     /**
      * @var string Alias for load Translations and views
      */
@@ -85,6 +95,9 @@ abstract class ServiceProvider extends LaravelServiceProvider
      */
     public function boot()
     {
+        if (!$this->moduleIsEnabled()) {
+            return;
+        }
         $this->registerPolicies();
         $this->registerCommands();
         $this->registerFactories();
@@ -228,6 +241,9 @@ abstract class ServiceProvider extends LaravelServiceProvider
      */
     public function register()
     {
+        if (!$this->moduleIsEnabled()) {
+            return;
+        }
         collect($this->providers)->each(function ($providerClass) {
             $this->app->register($providerClass);
         });

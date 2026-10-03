@@ -6,6 +6,7 @@ use theaddresstechnology\DDD\Helper\ArrayFormatter;
 use theaddresstechnology\DDD\Helper\Make\Types\Domain;
 use theaddresstechnology\DDD\Helper\Make\Types\FirstDomain;
 use theaddresstechnology\DDD\Helper\Path;
+use theaddresstechnology\DDD\Helper\SafePath;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use theaddresstechnology\DDD\Helper\Stub;
@@ -70,17 +71,28 @@ class Directory extends Command
             return 1;
         }
 
-        config(['ddd.scaffold.force' => true]);
+        foreach ([
+            'src', 'backup', 'app/Models/User.php', 'routes/web.php', 'config/auth.php',
+            'bootstrap/app.php', 'bootstrap/providers.php', 'database/migrations',
+            'database/seeders/DatabaseSeeder.php', 'database/seeds/DatabaseSeeder.php',
+            'navbar.json', 'public/layout-dist', 'resources/views',
+        ] as $path) {
+            SafePath::confine(base_path($path), base_path());
+        }
 
         if (!$this->option('withoutBackup')) {
             $this->backupSrc();
         }
 
-        $this->setupDirectory();
-
-        $this->bootstrap();
-
-        $this->firstDomain();
+        $previousForce = config('ddd.scaffold.force');
+        config(['ddd.scaffold.force' => true]);
+        try {
+            $this->setupDirectory();
+            $this->bootstrap();
+            $this->firstDomain();
+        } finally {
+            config(['ddd.scaffold.force' => $previousForce]);
+        }
 
         if ($this->option('removeBackup') && File::isDirectory(base_path('backup'))) {
             File::deleteDirectory(base_path('backup'));
@@ -97,9 +109,10 @@ class Directory extends Command
             return;
         }
 
-        $destination = base_path('backup'.DIRECTORY_SEPARATOR.date('YmdHis'));
-        File::makeDirectory($destination, 0755, true);
-        File::copyDirectory($src, $destination);
+        $destination = base_path('backup'.DIRECTORY_SEPARATOR.date('YmdHis').'-'.bin2hex(random_bytes(4)));
+        if (!File::makeDirectory($destination, 0755, true) || !File::copyDirectory($src, $destination)) {
+            throw new \RuntimeException('Backup failed; scaffolding was not started.');
+        }
         $this->info('Backed up src/ to '.$destination);
     }
 

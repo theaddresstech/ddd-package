@@ -15,7 +15,7 @@ class ConfigureDomainFormRequest extends FormRequest
      */
     public function authorize()
     {
-        return $this->user() !== null;
+        return $this->user()?->can('manage-domains') ?? false;
     }
 
     /**

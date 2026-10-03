@@ -18,7 +18,7 @@ class Path
 
     public static function toCommon(...$relatives): string
     {
-        return self::build(base_path("src".DIRECTORY_SEPARATOR.'Common'), ...$relatives);
+        return SafePath::confine(self::build(base_path("src".DIRECTORY_SEPARATOR.'Common'), ...$relatives), base_path());
     }
 
     /**
@@ -29,7 +29,7 @@ class Path
      */
     public static function toInfrastructure(...$relatives): string
     {
-        return self::build(base_path("src".DIRECTORY_SEPARATOR.'Infrastructure'), ...$relatives);
+        return SafePath::confine(self::build(base_path("src".DIRECTORY_SEPARATOR.'Infrastructure'), ...$relatives), base_path());
     }
 
     /**
@@ -52,7 +52,7 @@ class Path
      */
     public static function toDomain($name = '', ...$relatives): string
     {
-        return self::build(base_path('src'.DIRECTORY_SEPARATOR.'Domain'), $name, ...$relatives);
+        return SafePath::confine(self::build(base_path('src'.DIRECTORY_SEPARATOR.'Domain'), $name, ...$relatives), base_path());
     }
 
     /**
@@ -62,7 +62,7 @@ class Path
      */
     public static function package()
     {
-        return Str::before(__DIR__, 'src');
+        return dirname(__DIR__, 2);
     }
 
     /**

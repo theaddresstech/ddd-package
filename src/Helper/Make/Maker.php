@@ -288,23 +288,7 @@ abstract class Maker{
 
                 break;
 
-            case 'graphql type':
-                $types = [ '.graphql', '.php'];
 
-                [$key, $array, $error] = ["Graphql Type", $types, "Graphql Type Not Valid"];
-
-                break;
-            case 'graphql php type':
-                $types = [
-                    'query',
-                    'mutation',
-                    'directive',
-                    'scalar'
-                ];
-
-                [$key, $array, $error] = ["Graphql PHP Type", $types, "Graphql PHP Type Not Valid"];
-
-                break;
         }
 
         $this->validChoice($array,$error);

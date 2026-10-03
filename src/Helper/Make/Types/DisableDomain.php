@@ -55,6 +55,12 @@ class DisableDomain extends Maker
      */
     public function service(Array $values):Bool{
         $this->name = SafePath::className($values['domain']);
+        $repository = \theaddresstechnology\DDD\Modules\Repository::class;
+        if (app()->bound($repository) && app($repository)->has($this->name)) {
+            app($repository)->disable($this->name);
+
+            return true;
+        }
 
         return $this->modifyConfig();
 
