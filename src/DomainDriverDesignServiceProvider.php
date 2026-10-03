@@ -19,6 +19,7 @@ class DomainDriverDesignServiceProvider extends ServiceProvider{
     protected $commands = [
         Directory::class,
         Make::class,
+        \theaddresstechnology\DDD\Testing\SetupTestsCommand::class,
     ];
 
     public function boot(){

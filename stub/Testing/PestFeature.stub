@@ -3,4 +3,4 @@
 uses(\Tests\TestCase::class);
 
 // Add HTTP/database assertions for your application. Opt into RefreshDatabase when needed.
-it('implements {{NAME}} feature behavior')->todo();
+it({{DESCRIPTION}})->todo();

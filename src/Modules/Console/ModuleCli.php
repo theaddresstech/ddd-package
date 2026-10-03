@@ -17,6 +17,27 @@ use theaddresstechnology\DDD\Modules\StatusMigration;
 
 class ModuleCli
 {
+    public function makeTest(Command $command): int
+    {
+        try {
+            $module = $this->requireModule($command);
+            $types = \theaddresstechnology\DDD\Testing\PestTests::types(
+                (bool) $command->option('unit'), (bool) $command->option('feature'), (bool) $command->option('both'),
+            );
+            $directory = is_dir($module->path('Tests')) && !is_dir($module->path('tests')) ? 'Tests' : 'tests';
+            $files = (new \theaddresstechnology\DDD\Testing\PestTests($module->path()))
+                ->generate((string) $command->argument('name'), $types, $directory);
+            foreach ($files as $file) {
+                $command->info('Created '.$file);
+            }
+            $command->line('Run ddd:setup-tests once, then implement the generated Pest todos.');
+            return 0;
+        } catch (\InvalidArgumentException|\RuntimeException $exception) {
+            $command->error($exception->getMessage());
+            return 1;
+        }
+    }
+
     public function __construct(
         private Repository $modules,
         private Scaffolder $scaffolder,

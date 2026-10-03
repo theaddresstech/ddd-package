@@ -134,17 +134,11 @@ class Crud extends Maker
             ]);
         }
 
-        // Create API Resource
-         /*Test::createService([
-             'name'              =>  $values['name'],
-             'domain'            =>  $values['domain'],
-             'entity related'    =>  true,
-             'entity'            =>  $values['name'],
-             'test type'         => 'All'
-         ]);*/
-
         // Create Controllers
         $this->controllers($values);
+
+        (new \theaddresstechnology\DDD\Testing\PestTests(Path::toDomain(Naming::class($values['domain']))))
+            ->generate(Naming::class($values['name']), ['Unit', 'Feature'], 'Tests', preserveExisting: true);
 
         return true;
 

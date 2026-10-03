@@ -31,22 +31,31 @@
             "Tests\\": "tests/"
         }
     },
-    "bin": ["bin/ddd-doctor"],
+    "bin": [
+        "bin/ddd-doctor"
+    ],
     "extra": {
-        "laravel":{
-            "providers":[
+        "laravel": {
+            "providers": [
                 "theaddresstechnology\\DDD\\DomainDriverDesignServiceProvider"
             ]
         }
     },
     "suggest": {
-        "wikimedia/composer-merge-plugin": "Required in the root application so src/Domain/*/composer.json autoload entries are merged. module:setup writes the include path."
+        "wikimedia/composer-merge-plugin": "Required in the root application so src/Domain/*/composer.json autoload entries are merged. module:setup writes the include path.",
+        "pestphp/pest": "Install in the application require-dev to run generated Pest tests.",
+        "pestphp/pest-plugin-laravel": "Optional Laravel testing helpers; install a version compatible with the application Laravel/Pest majors."
     },
     "conflict": {
         "nwidart/laravel-modules": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^13.1",
-        "orchestra/testbench": "^10.12 || ^11.3"
+        "orchestra/testbench": "^10.12 || ^11.3",
+        "pestphp/pest": "^4.4.1 || ^5.3"
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     }
 }

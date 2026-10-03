@@ -30,6 +30,8 @@ API modules omit web/frontend assets; plain modules contain identity and a provi
 Classes use `Src\Domain\Blog\...`. Additional per-module mappings cover lower-case
 seeder/factory directories. Generated skeletons need application behavior added.
 Existing module directories and artifact files are not overwritten by generators.
+Full/API modules include Pest unit and feature todos. Use `module:make-test` to
+add named tests and `ddd:setup-tests` for discovery; see [testing](TESTING.md).
 
 The `ddd:make Domain` / `ddd:make Crud` workflow uses the legacy DDD layout with
 capitalized directories and richer REST scaffolding. Use it in an application that

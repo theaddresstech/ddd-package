@@ -155,6 +155,7 @@ class Scaffolder
         $this->file($path.'/config/config.php', "<?php\n\nreturn [\n    'name' => '{$name}',\n];\n");
         $this->file($path.'/database/seeders/'.$name.'DatabaseSeeder.php', $this->seederStub($namespace, $name));
         $this->file($path.'/lang/en.json', "{}\n");
+        (new \theaddresstechnology\DDD\Testing\PestTests($path))->generate('Example', ['Unit', 'Feature']);
         $this->file($path.'/routes/api.php', "<?php\n\n// Add API routes here; the module runtime applies the api middleware and prefix.\n");
 
         if ($api) {
