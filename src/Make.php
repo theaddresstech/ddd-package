@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use Illuminate\Console\Command;
 use theaddresstechnology\DDD\Helper\Make\Service\MakeFactory;
 use theaddresstechnology\DDD\Helper\Make\Service\NullMaker;

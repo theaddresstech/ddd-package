@@ -22,15 +22,21 @@ class DashboardLayout extends Layout{
     function build() : Bool{
         $dir = public_path('layout-dist');
 
+        $dist = Path::build(Path::package(),'views','dashboard','dist');
+        $layout = Path::build(Path::package(),'views','dashboard','layout');
+
+        if(!File::isDirectory($dist) || !File::isDirectory($layout)){
+            return false;
+        }
+
         if(File::isDirectory($dir)){
             File::deleteDirectory($dir);
         }
 
         File::makeDirectory($dir);
 
-        File::copyDirectory(Path::build(Path::package(),'views','dashboard','dist'),$dir);
-
-        File::copyDirectory(Path::build(Path::package(),'views','dashboard','layout'),resource_path('views/backend'));
+        File::copyDirectory($dist,$dir);
+        File::copyDirectory($layout,resource_path('views/backend'));
 
         return true;
     }

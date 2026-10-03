@@ -3,8 +3,8 @@
 namespace theaddresstechnology\DDD\Helper\Make;
 
 use theaddresstechnology\DDD\Helper\ArrayFormatter;
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Path;
+use theaddresstechnology\DDD\Helper\SafePath;
 use theaddresstechnology\DDD\Helper\Stub;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
@@ -369,10 +369,19 @@ abstract class Maker{
     }
 
     public function save($destination,$name,$ext,$content):void{
+        $name = SafePath::segment((string) $name);
+        $ext = SafePath::segment((string) $ext);
+        $destination = (string) $destination;
+
+        if (!SafePath::isInside($destination, base_path())) {
+            throw new \InvalidArgumentException('Refusing to write outside the application.');
+        }
+
         if(!File::isDirectory($destination)){
             File::makeDirectory($destination,0755,true,true);
         }
         $file = Path::build($destination,"$name.$ext");
+        SafePath::confine($file, base_path());
 
         File::put($file,$content);
     }

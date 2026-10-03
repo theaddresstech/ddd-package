@@ -918,10 +918,13 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
     public function pushCriteria($criteria)
     {
         if (is_string($criteria)) {
+            if (!is_subclass_of($criteria, CriteriaInterface::class)) {
+                throw new RepositoryException('Invalid criteria.');
+            }
             $criteria = new $criteria;
         }
         if (!$criteria instanceof CriteriaInterface) {
-            throw new RepositoryException("Class " . get_class($criteria) . " must be an instance of Prettus\\Repository\\Contracts\\CriteriaInterface");
+            throw new RepositoryException('Invalid criteria.');
         }
         $this->criteria->push($criteria);
 
@@ -1138,8 +1141,7 @@ abstract class BaseRepository implements RepositoryInterface, RepositoryCriteria
                         $this->model = $this->model->whereNotBetweenColumns($field, $val);
                         break;
                     case 'RAW':
-                        $this->model = $this->model->whereRaw($val);
-                        break;
+                        throw new RepositoryException('Raw query conditions are not allowed.');
                     default:
                         $this->model = $this->model->where($field, $condition, $val);
                 }

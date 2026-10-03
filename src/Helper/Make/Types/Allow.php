@@ -25,12 +25,14 @@ class Allow extends Maker
         $repositories = collect([]);
 
         foreach($domains as $domain){
-            if(!File::isDirectory(Path::build('app','Domain',$domain,'Entities'))){
+            $entities = Path::toDomain($domain,'Entities');
+            $eloquent = Path::toDomain($domain,'Repositories','Eloquent');
+            if(!File::isDirectory($entities) || !File::isDirectory($eloquent)){
                 continue;
             }
-            $repos_per_domain = Path::files('app','domain',$domain,'Repositories','Eloquent');
+            $repos_per_domain = Path::files('src','Domain',$domain,'Repositories','Eloquent');
             foreach($repos_per_domain as $repo){
-                $repositories->push(NamespaceCreator::Segments('App','Domain',$domain,'Repositories','Eloquent',$repo));
+                $repositories->push(NamespaceCreator::Segments('Src','Domain',$domain,'Repositories','Eloquent',$repo));
             }
         }
 

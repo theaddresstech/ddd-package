@@ -98,13 +98,17 @@ class FirstDomain extends Maker
         File::put(Path::build($seeder_dir,'UserTableSeeder.php'),$this->getStub('first_domain-user-seeder'));
         File::put(Path::build($factory_dir,'UserFactory.php'),$this->getStub('first_domain-user-factory'));
 
-        File::delete(File::files(base_path('database/migrations')));
+        if (config('ddd.scaffold.force')) {
+            foreach (File::files(base_path('database/migrations')) as $migration) {
+                File::delete($migration->getPathname());
+            }
+        }
     }
 
     private function createAuthControllers($values){
         File::copyDirectory(Path::stub($values['domain'],'Auth'),Path::toDomain($values['domain'],'Http','Controllers','Auth'));
         //File::copyDirectory(Path::stub($values['domain'],'auth-view','auth'),Path::toDomain($values['domain'],'Resources','Views','user','auth'));
-        File::append(Path::toDomain($values['domain'],'Routes','api','auth.php'),"\nRoute::post('/login','Auth\LoginController');\n");
+        File::append(Path::toDomain($values['domain'],'Routes','api','auth.php'),"\nRoute::post('/login', \\Src\\Domain\\User\\Http\\Controllers\\Auth\\LoginController::class);\n");
 
 
         File::deleteDirectory(Path::toDomain($values['domain'],'Grapqhl'));
@@ -125,7 +129,9 @@ class FirstDomain extends Maker
 
         $layout = LayoutFactory::create($layout,$options);
 
-        $layout->build();
+        if ($layout) {
+            $layout->build();
+        }
     }
 
     private function createGeneralDomain(){
@@ -139,7 +145,7 @@ class FirstDomain extends Maker
 
         $controller2 = ['Dashboard','Http','Controllers','ConfigureDomainController.php'];
         //$resource = ['Dashboard','Resources','Views','dashboard','index.blade.php'];
-        $route2 = ['Dashboard','Routes','api','public.php'];
+        $route2 = ['Dashboard','Routes','api','auth.php'];
 
         $request = ['Dashboard','Http','Requests','ConfigureDomain','ConfigureDomainFormRequest.php'];
 
@@ -158,12 +164,25 @@ class FirstDomain extends Maker
     }
 
     public function modifyMigrationSeeder(){
-        $seederPath = database_path('seeds/DatabaseSeeder.php');
-        if(File::isFile($seederPath)){
-            $from = '// \App\Models\User::factory(10)->create();';
-            $to = '$this->call(\App\Domain\User\Database\Seeds\UserTableSeeder::class);';
-            $content = Str::of(File::get($seederPath))->replace($from,$to);
-            File::put($seederPath,$content);
+        $paths = [
+            database_path('seeders/DatabaseSeeder.php'),
+            database_path('seeds/DatabaseSeeder.php'),
+        ];
+        $from = [
+            '// \App\Models\User::factory(10)->create();',
+            '$this->call(\App\Domain\User\Database\Seeds\UserTableSeeder::class);',
+        ];
+        $to = '$this->call(\\Src\\Domain\\User\\Database\\Seeds\\UserTableSeeder::class);';
+
+        foreach ($paths as $seederPath) {
+            if (!File::isFile($seederPath)) {
+                continue;
+            }
+            $content = File::get($seederPath);
+            $updated = str_replace($from, $to, $content);
+            if ($updated !== $content) {
+                File::put($seederPath, $updated);
+            }
         }
     }
 

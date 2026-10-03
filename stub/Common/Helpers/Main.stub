@@ -22,43 +22,31 @@ function aurl(string $url)
  */
 function UploadImages(string $dir, $image, $checkFunction = null) : string
 {
-    $saveImage = '';
-
-    if (! File::exists(public_path('uploads').'/' . $dir)) { // if file or fiolder not exists
-        /**
-         *
-         * @param $PATH Required
-         * @param $mode Defualt 0775
-         * @param create the directories recursively if doesn't exists
-         */
-        File::makeDirectory(public_path('uploads') . '/' . $dir, 0775, true); // create the dir or the
+    if (!$image instanceof \Illuminate\Http\UploadedFile || !$image->isValid()) {
+        return '';
     }
 
-    if (File::isFile($image)) {
-        ini_set('memory_limit', '-1');
+    $extension = strtolower((string) $image->getClientOriginalExtension());
+    $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf'];
 
-        $name = $image->getClientOriginalName(); // get image name
-        $extension  = $image->getClientOriginalExtension(); // get image extension
-        $sha1       = sha1($name); // hash the image name
-        $fileName   = rand(1, 1000000) . "_" . date("y-m-d-h-i-s") . "_" . $sha1 . "." . $extension; // create new name for the image
-
-        // if (! is_null($checkFunction)) {
-        //     if (!$checkFunction($extension)) {
-        //         return false;
-        //     }
-        // }
-
-        if (checkImages($extension)) {
-            $uploadedImage = Image::make($image->getRealPath());
-            $uploadedImage->save(public_path('uploads/' . $dir . '/' . $fileName), '100'); // save the image
-        } else {
-            $image->move(public_path('uploads/' . $dir), $fileName);
-        }
-
-        $saveImage = $dir . '/' . $fileName; // get the name of the image and the dir that uploaded in
+    if (!in_array($extension, $allowed, true)) {
+        return '';
     }
 
-    return $saveImage;
+    $directory = \theaddresstechnology\DDD\Helper\SafePath::confinedRelative(public_path('uploads'), $dir);
+
+    if ($directory === null) {
+        return '';
+    }
+
+    if (!\Illuminate\Support\Facades\File::isDirectory($directory)) {
+        \Illuminate\Support\Facades\File::makeDirectory($directory, 0755, true);
+    }
+
+    $fileName = bin2hex(random_bytes(16)).'.'.$extension;
+    $image->move($directory, $fileName);
+
+    return trim(str_replace('\\', '/', $dir), '/').'/'.$fileName;
 }
 
 /**

@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
 use theaddresstechnology\DDD\Helper\Naming;

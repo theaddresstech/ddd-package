@@ -73,13 +73,32 @@ class Path
      */
     public static function build(...$names): string
     {
-        $isLinux = false;
-        if (strpos($names[0], DIRECTORY_SEPARATOR) === 0) {
-            $isLinux = true;
+        $names = array_values(array_filter($names, static fn ($name) => $name !== null && $name !== '' && $name !== false));
+
+        if ($names === []) {
+            return '';
         }
-        $path = join(DIRECTORY_SEPARATOR, ArrayFormatter::trim($names, DIRECTORY_SEPARATOR));
-        if ($isLinux) $path = DIRECTORY_SEPARATOR . $path;
-        return $path;
+
+        $first = (string) $names[0];
+        $absolute = str_starts_with($first, DIRECTORY_SEPARATOR) || str_starts_with($first, '/');
+        $clean = [];
+
+        foreach ($names as $name) {
+            $name = trim((string) $name, "/\\");
+            if ($name === '') {
+                continue;
+            }
+            foreach (preg_split('#[/\\\\]#', $name) as $segment) {
+                if ($segment === '') {
+                    continue;
+                }
+                $clean[] = SafePath::segment($segment);
+            }
+        }
+
+        $path = implode(DIRECTORY_SEPARATOR, $clean);
+
+        return $absolute ? DIRECTORY_SEPARATOR.$path : $path;
     }
 
     public static function files(...$dir): array

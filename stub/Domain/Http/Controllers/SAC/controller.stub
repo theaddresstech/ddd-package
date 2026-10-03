@@ -67,7 +67,7 @@ class {{NAME}}Controller extends Controller
 
             $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
         }catch (\Exception $e) {
-            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+            $this->setApiResponse(fn () => response()->json(['message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
         return $this->response();
     }

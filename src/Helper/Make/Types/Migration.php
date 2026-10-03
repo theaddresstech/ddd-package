@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
 use theaddresstechnology\DDD\Helper\Naming;
@@ -63,8 +62,12 @@ class Migration extends Maker
             $file_action = $values['append'] = "create";
         }
 
-        $class = NamespaceCreator::entity($values['domain'],$values['entity']);
+        $class = NamespaceCreator::entity(Naming::class($values['domain']), Naming::class($values['entity']));
         $table = with(new $class)->getTable();
+
+        if (!\theaddresstechnology\DDD\Helper\SafePath::isIdentifier((string) $table)) {
+            throw new \InvalidArgumentException('Invalid table name.');
+        }
 
         $name =Naming::class(Str::of($table)->replace('_',' ')) ;
 

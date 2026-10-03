@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Src\Infrastructure\l5\Contracts\CriteriaInterface;
 use Src\Infrastructure\l5\Contracts\RepositoryInterface;
+use theaddresstechnology\DDD\Helper\SafePath;
 
 /**
  * Class RequestCriteria
@@ -46,7 +47,7 @@ class RequestCriteria implements CriteriaInterface
         $with = $this->request->get(config('repository.criteria.params.with', 'with'), null);
         $withCount = $this->request->get(config('repository.criteria.params.withCount', 'withCount'), null);
         $searchJoin = $this->request->get(config('repository.criteria.params.searchJoin', 'searchJoin'), null);
-        $sortedBy = !empty($sortedBy) ? $sortedBy : 'asc';
+        $sortedBy = SafePath::sortDirection((string) $sortedBy) ?? 'asc';
 
         if ($search && is_array($fieldsSearchable) && count($fieldsSearchable)) {
 
@@ -69,7 +70,10 @@ class RequestCriteria implements CriteriaInterface
 
                     $value = null;
 
-                    $condition = trim(strtolower($condition));
+                    $condition = SafePath::queryOperator((string) $condition);
+                    if ($condition === null || !SafePath::isRelation((string) $field)) {
+                        continue;
+                    }
 
                     if (isset($searchData[$field])) {
                         $value = ($condition == "like" || $condition == "ilike") ? "%{$searchData[$field]}%" : $searchData[$field];
@@ -166,17 +170,24 @@ class RequestCriteria implements CriteriaInterface
                 $filter = explode(';', $filter);
             }
 
-            $model = $model->select($filter);
+            $filter = array_values(array_filter($filter, static fn ($column) => SafePath::isIdentifier((string) $column)));
+            if ($filter !== []) {
+                $model = $model->select($filter);
+            }
         }
 
         if ($with) {
-            $with = explode(';', $with);
-            $model = $model->with($with);
+            $with = array_values(array_filter(explode(';', $with), static fn ($relation) => SafePath::isRelation((string) $relation)));
+            if ($with !== []) {
+                $model = $model->with($with);
+            }
         }
 
         if ($withCount) {
-            $withCount = explode(';', $withCount);
-            $model = $model->withCount($withCount);
+            $withCount = array_values(array_filter(explode(';', $withCount), static fn ($relation) => SafePath::isRelation((string) $relation)));
+            if ($withCount !== []) {
+                $model = $model->withCount($withCount);
+            }
         }
 
         return $model;
@@ -190,50 +201,12 @@ class RequestCriteria implements CriteriaInterface
      */
     protected function parserFieldsOrderBy($model, $orderBy, $sortedBy)
     {
-        $split = explode('|', $orderBy);
-        if(count($split) > 1) {
-            /*
-             * ex.
-             * products|description -> join products on current_table.product_id = products.id order by description
-             *
-             * products:custom_id|products.description -> join products on current_table.custom_id = products.id order
-             * by products.description (in case both tables have same column name)
-             */
-            $table = $model->getModel()->getTable();
-            $sortTable = $split[0];
-            $sortColumn = $split[1];
-
-            $split = explode(':', $sortTable);
-            $localKey = '.id';
-            if (count($split) > 1) {
-                $sortTable = $split[0];
-
-                $commaExp = explode(',', $split[1]);
-                $keyName = $table.'.'.$split[1];
-                if (count($commaExp) > 1) {
-                    $keyName = $table.'.'.$commaExp[0];
-                    $localKey = '.'.$commaExp[1];
-                }
-            } else {
-                /*
-                 * If you do not define which column to use as a joining column on current table, it will
-                 * use a singular of a join table appended with _id
-                 *
-                 * ex.
-                 * products -> product_id
-                 */
-                $prefix = Str::singular($sortTable);
-                $keyName = $table.'.'.$prefix.'_id';
-            }
-
-            $model = $model
-                ->leftJoin($sortTable, $keyName, '=', $sortTable.$localKey)
-                ->orderBy($sortColumn, $sortedBy)
-                ->addSelect($table.'.*');
-        } else {
-            $model = $model->orderBy($orderBy, $sortedBy);
+        $direction = SafePath::sortDirection((string) $sortedBy);
+        if ($direction === null || !SafePath::isIdentifier((string) $orderBy)) {
+            return $model;
         }
-        return $model;
+
+        return $model->orderBy($orderBy, $direction);
     }
 
     /**
@@ -299,7 +272,9 @@ class RequestCriteria implements CriteriaInterface
                 $temporaryIndex = array_search($field_parts[0], $originalFields);
 
                 if (count($field_parts) == 2) {
-                    if (in_array($field_parts[1], $acceptedConditions)) {
+                    $operator = SafePath::queryOperator($field_parts[1]);
+                    if ($operator !== null && in_array($operator, array_map('strtolower', $acceptedConditions), true) && SafePath::isRelation($field_parts[0])) {
+                        $field_parts[1] = $operator;
                         unset($originalFields[$temporaryIndex]);
                         $field = $field_parts[0];
                         $condition = $field_parts[1];
@@ -324,7 +299,7 @@ class RequestCriteria implements CriteriaInterface
             }
 
             if (count($fields) == 0) {
-                throw new \Exception(trans('repository::criteria.fields_not_accepted', ['field' => implode(',', $searchFields)]));
+                throw new \InvalidArgumentException('Search fields are not allowed.');
             }
 
         }

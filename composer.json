@@ -2,7 +2,8 @@
     "name": "theaddresstechnology/ddd",
     "description": "DDD Laravel-structure-generator",
     "license": "MIT",
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
+    "prefer-stable": true,
     "authors": [
         {
             "name": "theaddresstechnology",
@@ -10,19 +11,18 @@
         }
     ],
     "require": {
+        "php": "^8.2",
         "spatie/laravel-activitylog": "^4.0",
         "spatie/laravel-query-builder": "^6.3",
         "laravel/passport": "^12.3|^13.0"
     },
     "autoload": {
         "psr-4": {
-            "theaddresstechnology\\DDD\\":"src/",
-            "App\\":"app/"
+            "theaddresstechnology\\DDD\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "theaddresstechnology\\DDD\\":"src/",
             "Tests\\": "tests/"
         }
     },
@@ -34,6 +34,6 @@
         }
     },
     "require-dev": {
-        "orchestra/testbench": "^5.1"
+        "phpunit/phpunit": "^11.5"
     }
 }
