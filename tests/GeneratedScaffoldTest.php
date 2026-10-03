@@ -38,6 +38,10 @@ class GeneratedScaffoldTest extends TestCase
             $this->assertCount(1, glob($root.'/backup/*/existing.php'));
             $this->assertFileExists($root.'/src/Domain/User/Policies/UserPolicy.php');
             $this->assertFileExists($root.'/src/Domain/User/Http/Controllers/UserController.php');
+            foreach (['Unit', 'Feature'] as $type) {
+                $this->assertFileExists($root.'/src/Domain/User/Tests/'.$type.'/ExampleTest.php');
+                $this->assertStringContainsString('->todo()', file_get_contents($root.'/src/Domain/User/Tests/'.$type.'/UserTest.php'));
+            }
             $this->assertStringContainsString('Gate::policy(', file_get_contents($root.'/src/Domain/User/Providers/PolicyServiceProvider.php'));
             $this->assertDirectoryDoesNotExist($root.'/graphql');
             foreach (File::allFiles($root.'/src') as $file) {

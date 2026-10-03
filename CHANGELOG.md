@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.1.0 — 2026-10-03
+
+- Generate Pest feature, unit or both test types with `module:make-test` and
+  `ddd:make Test`, including nested names and overwrite/path protection.
+- Add Pest starter todos to new domains, full/API modules and CRUD scaffolds;
+  existing CRUD tests are preserved.
+- Add `ddd:setup-tests` for application test support and module discovery while
+  preserving existing test files and PHPUnit configuration.
+- Run package regressions and generated-test execution through Pest 4/5 across
+  Laravel 12/13. Keep Pest as a development dependency.
+- Keep the previous reflection-based generator behind `--legacy-phpunit`.
+
 ## 2.0.0 — 2026-10-03
 
 ### Breaking changes

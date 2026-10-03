@@ -48,6 +48,7 @@ use theaddresstechnology\DDD\Modules\Console\Commands\StatusCommand;
 use theaddresstechnology\DDD\Modules\Console\Commands\UnuseCommand;
 use theaddresstechnology\DDD\Modules\Console\Commands\UpdateCommand;
 use theaddresstechnology\DDD\Modules\Console\Commands\UpdatePhpunitCommand;
+use theaddresstechnology\DDD\Modules\Console\Commands\MakeTestCommand;
 use theaddresstechnology\DDD\Modules\Console\Commands\UseCommand;
 use theaddresstechnology\DDD\Modules\Scaffolder;
 
@@ -113,6 +114,7 @@ return [
         PublishTranslationCommand::class,
         PublishInertiaCommand::class,
         UpdatePhpunitCommand::class,
+        MakeTestCommand::class,
         InstallCommand::class,
         UpdateCommand::class,
         DeleteCommand::class,

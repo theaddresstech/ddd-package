@@ -60,7 +60,7 @@ php artisan ddd:make Crud --name=Order --domain=Sales
 ```
 
 CRUD generation creates a model, migration, factory, seeder, requests, repository,
-resource, policies and controllers/routes. It does **not** generate a completed
+resource, policies, controllers/routes and Pest unit/feature test todos. It does **not** generate a completed
 business module, tenant isolation, views or a datatable automatically. Implement
 validation, policy decisions, ownership/tenant scopes, and repository allowlists.
 Generated CRUD policies and broadcast channels deny access by default.
@@ -85,6 +85,22 @@ never use this command to upgrade a production application.
 - Artifact generators refuse to overwrite existing files. Module asset builds use
   Vite 8 and produce JS/CSS tags through `module_vite()`.
 
+## Pest unit and feature tests
+
+New domains, full/API modules and CRUD scaffolds include Pest unit and feature
+test files. Install Pest in your application's development dependencies, then:
+
+```bash
+php artisan ddd:setup-tests
+php artisan module:make-test OrderTest Sales --both
+php artisan ddd:make Test --domain=Sales --name=PricingTest --unit
+vendor/bin/pest
+```
+
+Feature tests use your Laravel `Tests\TestCase`; unit tests stay isolated.
+Generated cases are todos for you to implement, and existing tests are preserved.
+See [Pest setup, dependency versions and examples](docs/TESTING.md).
+
 ## Security behavior
 
 Generated domain administration requires `auth:api` and a `manage-domains` gate;
@@ -105,6 +121,7 @@ and deployment procedures. They do not replace reviewing generated code.
 - [v1 → v2 upgrade and rollback](docs/UPGRADE_2.0.md)
 - [Module setup, dependencies, assets and diagnostics](docs/MODULES.md)
 - [Command reference](docs/COMMANDS.md)
+- [Pest unit and feature testing](docs/TESTING.md)
 - [Laravel Modules comparison and remaining additions](docs/LARAVEL_MODULES.md)
 - [V2 audit, validation and limits](docs/V2_AUDIT.md)
 - [Original security findings](docs/SECURITY_AUDIT_2026-10-03.md)
@@ -113,12 +130,13 @@ and deployment procedures. They do not replace reviewing generated code.
 ## Development
 
 ```bash
-composer update --no-plugins --no-scripts
+composer update --no-scripts
 composer validate --strict
 composer audit
-vendor/bin/phpunit --fail-on-warning --fail-on-risky --fail-on-deprecation --fail-on-phpunit-deprecation --fail-on-phpunit-notice
+vendor/bin/pest --fail-on-warning --fail-on-risky --fail-on-deprecation --fail-on-phpunit-deprecation --fail-on-phpunit-notice
 ```
 
 CI covers PHP 8.4/8.5 with Laravel 12/13 plus a real generated module asset build.
-Testbench 10 selects the latest compatible PHPUnit 13.1; Testbench 11 selects
-13.3.6. PHPUnit 13.4 is currently rejected by Testbench's upstream constraints.
+CI uses Pest 4 with Testbench 10/Laravel 12 and Pest 5 with Testbench 11/Laravel 13.
+Pest selects its compatible PHPUnit version; the package retains its existing
+class-based regression tests and runs them through Pest alongside new Pest cases.

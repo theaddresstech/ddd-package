@@ -1,4 +1,4 @@
 <?php
 
 // Add isolated assertions for your domain logic. No Laravel application is booted.
-it('implements {{NAME}} unit behavior')->todo();
+it({{DESCRIPTION}})->todo();

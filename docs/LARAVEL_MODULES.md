@@ -16,6 +16,7 @@ DDD provides its own module runtime; it is not a complete reimplementation of th
 | Composer integration | Optional root merge plugin; configuration alone does not install or trust it. |
 | Asset tooling | Vite 8/Sass module build and manifest JS/CSS rendering for the default layout. |
 | Diagnostics | Added standalone read-only v2 upgrade/module doctor. |
+| Pest tests | Unit/feature generators, automatic starter tests, application setup and both module layouts; see [testing](TESTING.md). |
 | Models, repository methods and facade API | DDD-specific APIs; no complete Nwidart API compatibility promise. |
 | Livewire and third-party module plugins | Not integrated or tested as replacements. |
 | Module cache | Metadata snapshot export; not a complete persistent discovery-cache implementation. |

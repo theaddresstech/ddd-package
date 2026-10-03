@@ -8,6 +8,11 @@ from the implementation. “Every module” means enabled modules by default, un
 
 - `ddd:make {type}`: legacy DDD makers. Common examples: `Domain --name=Sales` and
   `Crud --name=Order --domain=Sales`. Run help for dynamically registered options.
+- `ddd:make Test --domain=Sales --name=OrderTest [--unit|--feature|--both]`:
+  Pest test generation; feature is the default. The old reflection generator is
+  available only with `--legacy-phpunit`. See [testing](TESTING.md).
+- `ddd:setup-tests {--modules-path=}`: prepare Pest support and test discovery,
+  preserving existing test files and configuration.
 - `ddd:directory --force`: destructive fresh scaffold; never an upgrade command.
   `--withoutBackup` skips the src backup; `--removeBackup` removes backup/ after success.
 - `vendor/bin/ddd-doctor [application-directory] [--modules=src/Domain] [--json] [--strict]`:
@@ -31,6 +36,7 @@ from the implementation. “Every module” means enabled modules by default, un
 | `module:make-cast {name} {module?}` | Create an Eloquent cast |
 | `module:make-channel {name} {module?}` | Create a broadcast channel |
 | `module:make-class {name} {module?}` | Create a plain PHP class |
+| `module:make-test {name} {module?} {--unit} {--feature} {--both}` | Create Pest feature tests, isolated unit tests, or both |
 | `module:make {name*} {--plain} {--api} {--disabled} {--force}` | Create one or more modules |
 | `module:make-enum {name} {module?}` | Create a PHP enum |
 | `module:make-event-provider {name} {module?}` | Create an additional event service provider |
