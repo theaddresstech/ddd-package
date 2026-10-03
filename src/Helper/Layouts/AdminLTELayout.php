@@ -23,16 +23,21 @@ class AdminLTELayout extends Layout{
         $dir = public_path('layout-dist');
 
 
+        $dist = Path::build(Path::package(),'views','lte','dist');
+        $layout = Path::build(Path::package(),'views','lte','layout');
+
+        if(!File::isDirectory($dist) || !File::isDirectory($layout)){
+            return false;
+        }
+
         if(File::isDirectory($dir)){
             File::deleteDirectory($dir);
         }
 
         File::makeDirectory($dir);
 
-        File::copyDirectory(Path::build(Path::package(),'views','lte','dist'),$dir);
-
-
-        File::copyDirectory(Path::build(Path::package(),'views','lte','layout'),resource_path('views'));
+        File::copyDirectory($dist,$dir);
+        File::copyDirectory($layout,resource_path('views'));
 
         return true;
     }

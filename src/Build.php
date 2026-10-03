@@ -42,23 +42,9 @@ class Build extends Command
      */
     public function handle()
     {
-        $backupFolder = File::directories(base_path('backup'));
+        $this->error('ddd:build is not available.');
 
-        if(count($backupFolder)!==1){
-            $this->error('you should have only one folder in backup');
-            return;
-        }
-        $this->app_path = $backupFolder[0].DIRECTORY_SEPARATOR.'app';
-        $files = File::allFiles($this->app_path);
-
-        foreach($files as $file){
-            $namespace = str_replace($this->app_path,'',$file->getPathname());
-            $class = 'App\\'.trim($namespace,DIRECTORY_SEPARATOR . ' .php');
-
-            Log::info($class);
-            if(class_exists($class)){
-            }
-        }
+        return 1;
     }
 
 }

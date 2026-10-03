@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
 use theaddresstechnology\DDD\Helper\Naming;
@@ -10,8 +9,6 @@ use theaddresstechnology\DDD\Helper\Path;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-
-use MohamedReda\DDD\Helper\Make\Types\Rule;
 
 class Crud extends Maker
 {
@@ -61,13 +58,12 @@ class Crud extends Maker
             'domain'    => $values['domain']
         ]);
 
-        // Graphql::createService([
-        //     'name'      => $values['name'],
-        //     'domain'    => $values['domain'],
-        //     'entity'    => $values['name'],
-        //     'graphql type'=>'.graphql',
-        //     'graphql php type'=>null
-        // ]);
+        Policy::createService([
+            'name' => $values['name'].' Policy',
+            'domain' => $values['domain'],
+            'entity' => Naming::class($values['name']),
+        ]);
+
 
         // Create DatabaseView
         // DatabaseView::createService([
@@ -232,17 +228,20 @@ class Crud extends Maker
         ]);
 
         $controllerName = Naming::class($values['name']).'Controller';
+        $domain = Naming::class($values['domain']);
         $route_name = Naming::tableName($values['name']);
+        $controllerClass = '\\Src\\Domain\\'.$domain.'\\Http\\Controllers\\'.$controllerName.'::class';
+        $route = "Route::apiResource('/$route_name', $controllerClass);\n\t###CRUD_PLACEHOLDER###";
 
 
-        $web_path = Path::toDomain($values['domain'],'Routes','web','auth.php');
-        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::apiResource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
-        $this->save(Path::toDomain($values['domain'],'Routes','web'),'auth','php',$web_content);
+        $web_path = Path::toDomain($domain,'Routes','web','auth.php');
+        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###",$route);
+        $this->save(Path::toDomain($domain,'Routes','web'),'auth','php',$web_content);
 
 
-        $web_path = Path::toDomain($values['domain'],'Routes','api','auth.php');
-        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###","Route::apiResource('/$route_name','$controllerName');\n\t###CRUD_PLACEHOLDER###");
-        $this->save(Path::toDomain($values['domain'],'Routes','api'),'auth','php',$web_content);
+        $web_path = Path::toDomain($domain,'Routes','api','auth.php');
+        $web_content =Str::of(File::get($web_path))->replace("###CRUD_PLACEHOLDER###",$route);
+        $this->save(Path::toDomain($domain,'Routes','api'),'auth','php',$web_content);
 
     }
 }

@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
 use theaddresstechnology\DDD\Helper\Naming;
@@ -22,6 +21,7 @@ class Listener extends Maker
         'domain',
         'command_http_general',
         'event',
+        'sync',
     ];
 
     /**
@@ -40,7 +40,9 @@ class Listener extends Maker
      *
      * @return Array
      */
-    public $booleanOptions = [];
+    public $booleanOptions = [
+        'sync',
+    ];
 
     /**
      * Check if the current options is requesd based on other option
@@ -72,6 +74,12 @@ class Listener extends Maker
 
         $content = Str::of($this->getStub('listener'))
                         ->replace(array_keys($placeholders),array_values($placeholders));
+
+        if (!empty($values['sync'])) {
+            $content = $content
+                ->replace('use Illuminate\\Contracts\\Queue\\ShouldQueue;', '')
+                ->replace(' implements ShouldQueue', '');
+        }
 
         $this->save($destination,$className,'php',$content);
 

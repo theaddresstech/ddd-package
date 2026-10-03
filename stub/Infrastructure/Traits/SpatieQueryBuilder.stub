@@ -16,7 +16,7 @@ trait SpatieQueryBuilder
      */
     public function iall() : Collection
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->allowedIncludes($this->allowedIncludes)->allowedSorts($this->allowedSorts)->get();
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts)->get();
     }
 
     /**
@@ -27,7 +27,7 @@ trait SpatieQueryBuilder
      */
     public function ipaginate() : LengthAwarePaginator
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->allowedIncludes($this->allowedIncludes)->allowedSorts($this->allowedSorts)->paginate($this->limit);
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts)->paginate($this->limit);
     }
 
     /**
@@ -38,7 +38,7 @@ trait SpatieQueryBuilder
      */
     public function ifind(int $id): Model
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->where(['id' => $id])->allowedIncludes($this->allowedIncludes)->allowedSorts($this->allowedSorts)->firstOrFail();
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->where(['id' => $id])->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts)->firstOrFail();
     }
 
     /**
@@ -49,28 +49,28 @@ trait SpatieQueryBuilder
      */
     public function ifindMany(array $ids) : Collection
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->whereIn('id', $ids)->allowedIncludes($this->allowedIncludes)->allowedSorts($this->allowedSorts)->get();
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->whereIn('id', $ids)->allowedIncludes(...$this->allowedIncludes)->allowedSorts(...$this->allowedSorts)->get();
     }
 
     /**
      * Find $column Where Equals $value.
      *
-     * @param  array $createria
+     * @param  array $criteria
      * @return Illuminate\Support\Collection
      */
-    public function ifindWhere(array $createria) : Collection
+    public function ifindWhere(array $criteria) : Collection
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->where($criteria)->allowedIncludes($this->allowedIncludes)->get();
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->where($criteria)->allowedIncludes(...$this->allowedIncludes)->get();
     }
 
     /**
      * Find $column Where Equals $value then get the first value.
      *
-     * @param  array $createria
+     * @param  array $criteria
      * @return Model
      */
-    public function ifindWhereFirst(array $createria) : Model
+    public function ifindWhereFirst(array $criteria) : Model
     {
-        return QueryBuilder::for($this->entity->getMorphClass())->with($this->relations)->allowedFields($this->allowedFields)->allowedFilters($this->allowedFilters)->allowedAppends($this->allowedAppends)->where($criteria)->allowedIncludes($this->allowedIncludes)->firstOrFail();
+        return QueryBuilder::for($this->entity->newQuery())->with($this->relations)->allowedFields(...$this->allowedFields)->allowedFilters(...$this->allowedFilters)->where($criteria)->allowedIncludes(...$this->allowedIncludes)->firstOrFail();
     }
 }

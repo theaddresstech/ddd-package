@@ -7,6 +7,8 @@ use Src\Infrastructure\Http\AbstractControllers\BaseController as Controller;
 use theaddresstechnology\DDD\Traits\Responder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginController extends Controller
 {
@@ -51,12 +53,31 @@ class LoginController extends Controller
 
     public function __invoke(Request $request)
     {
+        $credentials = $request->validate([
+            'email' => ['required', 'string', 'email', 'max:254'],
+            'password' => ['required', 'string', 'max:1024'],
+        ]);
+        $key = 'ddd-login:'.hash('sha256', strtolower($credentials['email']).'|'.$request->ip());
+        if (RateLimiter::tooManyAttempts($key, 5)) {
+            return response()->json(['message' => 'Too many login attempts.'], 429)
+                ->header('Retry-After', RateLimiter::availableIn($key));
+        }
+
         try{
-            if(!auth()->attempt(['email'=>$request->email,'password' =>$request->password,])){
+            $guard = Auth::guard('web');
+            $authenticated = $request->hasSession()
+                ? $guard->attempt($credentials)
+                : $guard->once($credentials);
+            if (!$authenticated) {
+                RateLimiter::hit($key, 60);
                 return response()->json(['message' => 'email or password incorrect!',], 401);
             }
 
-            $user = \auth()->user();
+            RateLimiter::clear($key);
+            if ($request->hasSession()) {
+                $request->session()->regenerate();
+            }
+            $user = $guard->user();
 
             $this->setData('data', $user);
 
@@ -68,7 +89,8 @@ class LoginController extends Controller
             }
         }
         catch(\Exception $exception){
-            $this->setApiResponse(fn() => response(['message' => $exception->getMessage()],Response::HTTP_CONFLICT));
+            report($exception);
+            $this->setApiResponse(fn() => response(['message' => 'The request could not be completed.'],Response::HTTP_CONFLICT));
         }
         return $this->response();
     }

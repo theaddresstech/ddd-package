@@ -2,19 +2,18 @@
 
 namespace Src\Domain\User\Entities;
 
-//use Laravel\Passport\HasApiTokens;
-//use Spatie\Permission\Traits\HasRoles;
+use Laravel\Passport\HasApiTokens;
+use Laravel\Passport\Contracts\OAuthenticatable;
 use Illuminate\Notifications\Notifiable;
 use Src\Domain\User\Entities\Traits\Relations\UserRelations;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Src\Domain\Users\Repositories\Contracts\TeamRepository;
 use Src\Domain\User\Entities\Traits\CustomAttributes\UserAttributes;
 use Src\Domain\User\Repositories\Contracts\UserRepository;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class User extends Authenticatable
+class User extends Authenticatable implements OAuthenticatable
 {
-    use Notifiable, UserRelations, UserAttributes, HasFactory;
+    use HasApiTokens, Notifiable, UserRelations, UserAttributes, HasFactory;
 
     /**
      * define belongsTo relations.
@@ -46,8 +45,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'activation_token',
-        'email_verified_at',
     ];
 
     /**
@@ -68,6 +65,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password' => 'hashed',
     ];
 
     /**

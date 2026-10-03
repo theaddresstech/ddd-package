@@ -147,9 +147,9 @@ trait BuilderParameters
         if (count($selectColumns)) {
             foreach ($selectColumns as $column) {
                 if (array_key_exists('index_num', $column) && array_key_exists('selectValues', $column) && is_array($column['selectValues'])) {
-                    $options = '<option value="empty">'.trans('main.select').'</option>';
+                    $options = '<option value="empty">'.e(trans('main.select')).'</option>';
                     foreach ($column['selectValues'] as $key => $val) {
-                        $options .= '<option value="'.$key.'">'.$val.'</option>';
+                        $options .= '<option value="'.e((string) $key).'">'.e((string) $val).'</option>';
                     }
                     $jqCode .= $this->getSelectJqCode($column, $options);
                 } else {
@@ -169,18 +169,24 @@ trait BuilderParameters
      */
     protected function getSelectJqCode(array $column, string $options) : string
     {
+        $index = $this->columnIndex($column['index_num']);
+        $optionsJson = $this->javascriptValue($options);
         $bool = array_key_exists('serverSide', $column) ? "'yes'" : "'no'";
-        if ($bool == '\'yes\'') {
-            $trigger_code = "window.location = '{$column['serverSide']['serverSideUrl']}?{$column['serverSide']['serverSideUrlParam']}='+$(this).val();";
-        } else {
-            $trigger_code = "";
+        $trigger_code = '';
+        if (array_key_exists('serverSide', $column)) {
+            $url = $this->javascriptValue($column['serverSide']['serverSideUrl']);
+            $parameter = $this->javascriptValue($column['serverSide']['serverSideUrlParam']);
+            $trigger_code = "var target = new URL($url, window.location.href);\n"
+                . "if (target.origin !== window.location.origin) { return; }\n"
+                . "target.searchParams.set($parameter, $(this).val());\n"
+                . "window.location.assign(target.href);";
         }
-        return "this.api().columns([".$column['index_num']."]).every(function () {
+        return "this.api().columns([".$index."]).every(function () {
             var column = this;
             var select = document.createElement(\"select\");
             $(select).attr( 'style', 'width: 100%');
             $(select).attr( 'class', 'form-control');
-            $(select).html('".$options."');
+            $(select).html(".$optionsJson.");
             $(select).appendTo($(column.footer()).empty()).on('change', function () {
                 if($bool == 'yes'){
                     ".$trigger_code."
@@ -203,7 +209,7 @@ trait BuilderParameters
      */
     protected function getNormalColumns(array $columns) : string
     {
-        return "this.api().columns([".implode(', ', $columns)."]).every(function () {
+        return "this.api().columns([".implode(', ', array_map([$this, 'columnIndex'], $columns))."]).every(function () {
             var column = this;
             var input = document.createElement(\"input\");
             $(input).attr( 'style', 'width: 100%');
@@ -212,6 +218,21 @@ trait BuilderParameters
                 column.search($(this).val()).draw();
             });
         });";
+    }
+
+    private function javascriptValue($value): string
+    {
+        return json_encode($value, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_THROW_ON_ERROR);
+    }
+
+    private function columnIndex($index): int
+    {
+        $value = filter_var($index, FILTER_VALIDATE_INT, ['options' => ['min_range' => 0]]);
+        if ($value === false) {
+            throw new \InvalidArgumentException('Column index must be a non-negative integer.');
+        }
+
+        return $value;
     }
 
     /**

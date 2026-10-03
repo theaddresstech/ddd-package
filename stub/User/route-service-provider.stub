@@ -47,17 +47,14 @@ class RouteServiceProvider extends ServiceProvider
     {
         Route::middleware('web')
             ->prefix(config('system.admin.prefix'))
-            ->namespace($this->namespace)
             ->group(base_path('src/Domain/User/Routes/web/public.php'));
 
         Route::middleware('web')
             ->prefix(config('system.admin.prefix'))
-            ->namespace($this->namespace)
             ->group(base_path('src/Domain/User/Routes/web/guest.php'));
 
         Route::middleware('web')
             ->prefix(config('system.admin.prefix'))
-            ->namespace($this->namespace)
             ->group(base_path('src/Domain/User/Routes/web/auth.php'));
 
     }
@@ -74,19 +71,16 @@ class RouteServiceProvider extends ServiceProvider
         Route::middleware('api')
             ->prefix('api/')
             ->name('api.')
-            ->namespace($this->namespace)
             ->group(base_path("src/Domain/User/Routes/api/public.php"));
 
         Route::middleware('api')
             ->prefix('api/')
             ->name('api.')
-            ->namespace($this->namespace)
             ->group(base_path("src/Domain/User/Routes/api/guest.php"));
 
         Route::middleware('api')
             ->prefix('api/')
             ->name('api.')
-            ->namespace($this->namespace)
             ->group(base_path("src/Domain/User/Routes/api/auth.php"));
     }
 }

@@ -8,7 +8,6 @@ use Illuminate\Support\Str;
 use theaddresstechnology\DDD\Helper\Path;
 use theaddresstechnology\DDD\Helper\Naming;
 use theaddresstechnology\DDD\Helper\Make\Maker;
-use theaddresstechnology\DDD\Helper\FileCreator;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Artisan;
 use theaddresstechnology\DDD\Helper\Make\Types\Allow;

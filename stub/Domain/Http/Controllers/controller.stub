@@ -60,6 +60,8 @@ class {{NAME}}Controller extends Controller
      */
     public function index(Request $request)
     {
+        $this->authorize('viewAny', {{NAME}}::class);
+
         try{
            $index = $this->{{NAME_REPO_VAR}}->spatie()->paginate();
 
@@ -72,7 +74,7 @@ class {{NAME}}Controller extends Controller
            $this->useCollection({{API_RESOURCE_NAME}}ResourceCollection::class,'data');
 
         }catch(\Exception $e){
-            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+            $this->setApiResponse(fn () => response()->json(['message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
 
         return $this->response();
@@ -86,6 +88,8 @@ class {{NAME}}Controller extends Controller
      */
     public function store({{NAME_REQUEST_STORE}} $request)
     {
+        $this->authorize('create', {{NAME}}::class);
+
         try{
            DB::beginTransaction();
 
@@ -98,7 +102,7 @@ class {{NAME}}Controller extends Controller
            $this->useCollection({{API_RESOURCE_NAME}}Resource::class, 'data');
         }catch(\Exception $e){
             DB::rollBack();
-            $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+            $this->setApiResponse(fn () => response()->json(['message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
         return $this->response();
     }
@@ -111,6 +115,8 @@ class {{NAME}}Controller extends Controller
      */
     public function show({{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('view', ${{VIEW_RESOURCE}});
+
        try {
            ${{VIEW_RESOURCE}}=$this->{{NAME_REPO_VAR}}->spatie()->find(${{VIEW_RESOURCE}}->id);
 
@@ -119,7 +125,7 @@ class {{NAME}}Controller extends Controller
            $this->useCollection({{API_RESOURCE_NAME}}Resource::class,'show');
        }
        catch (\Exception $e) {
-          $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+          $this->setApiResponse(fn () => response()->json(['message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
        }
 
         return $this->response();
@@ -133,6 +139,8 @@ class {{NAME}}Controller extends Controller
      */
     public function update({{NAME_REQUEST_UPDATE}} $request,{{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('update', ${{VIEW_RESOURCE}});
+
         try{
             DB::beginTransaction();
 
@@ -145,7 +153,7 @@ class {{NAME}}Controller extends Controller
             $this->useCollection({{API_RESOURCE_NAME}}Resource::class, 'data');
         }catch(\Exception $e) {
              DB::rollBack();
-             $this->setApiResponse(fn () => response()->json(['message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+             $this->setApiResponse(fn () => response()->json(['message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
 
         return $this->response();
@@ -159,12 +167,14 @@ class {{NAME}}Controller extends Controller
      */
     public function destroy({{NAME}} ${{VIEW_RESOURCE}})
     {
+        $this->authorize('delete', ${{VIEW_RESOURCE}});
+
         try{
            ${{VIEW_RESOURCE}}->delete();
 
             $this->setApiResponse(fn () => response()->json(['deleted' => true], 200));
         }catch (\Exception $e) {
-            $this->setApiResponse(fn () => response()->json(['deleted' => false, 'message' => $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR));
+            $this->setApiResponse(fn () => response()->json(['deleted' => false, 'message' => 'The request could not be completed.'], Response::HTTP_INTERNAL_SERVER_ERROR));
         }
         return $this->response();
     }

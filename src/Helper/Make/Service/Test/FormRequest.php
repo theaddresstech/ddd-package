@@ -52,7 +52,6 @@ class FormRequest extends Test
                     // '{{JWTMETHODS}}' => $this->createJWTMethods(),
                     // '{{SETUP}}' => $this->createSetupMethod($formRequest)
                 ];
-                dd($placeholders);
                 $dir = Path::toDomain($this->domain, 'Tests', 'Unit', 'Entities');
 
                 if (!File::isDirectory($dir)) {

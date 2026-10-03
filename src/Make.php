@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use Illuminate\Console\Command;
 use theaddresstechnology\DDD\Helper\Make\Service\MakeFactory;
 use theaddresstechnology\DDD\Helper\Make\Service\NullMaker;
@@ -62,15 +61,17 @@ class Make extends Command
          */
         if($maker instanceof NullMaker){
             $this->error($this->argument('type')." type is not supported");
-            return;
+            return 1;
         }
 
         $result = $maker->create();
 
         if($result){
             $this->info("Process successded");
+            return 0;
         }else{
             $this->error("Process Failed");
+            return 1;
         }
     }
 }

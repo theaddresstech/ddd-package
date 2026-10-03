@@ -38,10 +38,11 @@ class EntitiesRelations extends Test
                 ...array_merge($this->realtionsDirPath, [$realtion])
             );
 
-            // assign anonymous class that use the relationship tarit to global variable model
-            eval(Str::of($this->TestCommand->getStub('entity-relations-anonymous-class'))
-                ->replace(['{{RealtionshipNameSpace}}'], [$realtionNameSpace]));
+            if (!\theaddresstechnology\DDD\Helper\SafePath::isQualifiedName($realtionNameSpace) || !trait_exists($realtionNameSpace)) {
+                continue;
+            }
 
+            $this->relationClass = $this->modelUsingTrait($realtionNameSpace);
             $this->relationshipMethods = $this->relationMethods();
             $this->createBasicTestCases();
 
@@ -57,6 +58,29 @@ class EntitiesRelations extends Test
             $classFullName = $realtion . 'Test';
             $this->TestCommand->save($dir, $classFullName, 'php', $content);
         }
+    }
+
+    private function modelUsingTrait(string $trait): \Illuminate\Database\Eloquent\Model
+    {
+        $class = 'DddRelationProbe'.substr(sha1($trait), 0, 16);
+
+        if (!class_exists($class, false)) {
+            $file = tempnam(sys_get_temp_dir(), 'ddd-relation-');
+            if ($file === false) {
+                throw new \RuntimeException('Unable to create relation probe.');
+            }
+            try {
+                $content = "<?php\nclass {$class} extends \\Illuminate\\Database\\Eloquent\\Model\n{\n    use {$trait};\n}\n";
+                if (file_put_contents($file, $content) !== strlen($content)) {
+                    throw new \RuntimeException('Unable to write relation probe.');
+                }
+                require $file;
+            } finally {
+                unlink($file);
+            }
+        }
+
+        return new $class;
     }
 
     public function relationMethods()

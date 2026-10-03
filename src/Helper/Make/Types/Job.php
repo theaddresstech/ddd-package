@@ -2,7 +2,6 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
 use theaddresstechnology\DDD\Helper\Naming;
@@ -19,7 +18,8 @@ class Job extends Maker
      */
     public $options = [
         'name',
-        'domain'
+        'domain',
+        'sync',
     ];
 
     /**
@@ -36,7 +36,9 @@ class Job extends Maker
      *
      * @return Array
      */
-    public $booleanOptions = [];
+    public $booleanOptions = [
+        'sync',
+    ];
 
     /**
      * Check if the current options is requesd based on other option
@@ -64,6 +66,12 @@ class Job extends Maker
 
         $content = Str::of($this->getStub('job'))
                         ->replace(array_keys($placeholders),array_values($placeholders));
+
+        if (!empty($values['sync'])) {
+            $content = $content
+                ->replace('use Illuminate\\Contracts\\Queue\\ShouldQueue;', '')
+                ->replace(' implements ShouldQueue', '');
+        }
 
         $this->save($dir,$name,'php',$content);
 

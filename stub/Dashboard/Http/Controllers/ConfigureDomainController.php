@@ -21,6 +21,7 @@ class ConfigureDomainController extends Controller
      */
     public function index()
     {
+        $this->authorize('manage-domains');
         $data=Path::getDomains();
 
         $data=collect($data)->map(function ($name) {
@@ -29,6 +30,10 @@ class ConfigureDomainController extends Controller
             $status="in_active";
             if (Str::of($app)->contains([$service_provider], [false]) == true) {
                 $status="active";
+            }
+            $modules = app(\theaddresstechnology\DDD\Modules\Repository::class);
+            if ($modules->has($name)) {
+                $status = $modules->isEnabled($name) ? 'active' : 'in_active';
             }
             return[
                 "name"=>$name,

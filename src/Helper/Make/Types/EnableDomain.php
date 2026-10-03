@@ -2,18 +2,12 @@
 
 namespace theaddresstechnology\DDD\Helper\Make\Types;
 
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Traits\Macroable;
-use theaddresstechnology\DDD\Helper\FileCreator;
 use theaddresstechnology\DDD\Helper\Make\Maker;
 use theaddresstechnology\DDD\Helper\NamespaceCreator;
-use theaddresstechnology\DDD\Helper\Naming;
-use theaddresstechnology\DDD\Helper\Path;
+use theaddresstechnology\DDD\Helper\SafePath;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
-
-use MohamedReda\DDD\Helper\Make\Types\Rule;
 
 class EnableDomain extends Maker
 {
@@ -30,6 +24,7 @@ class EnableDomain extends Maker
      */
     public $options = [
         'domain',
+        'force',
     ];
 
     /**
@@ -46,7 +41,9 @@ class EnableDomain extends Maker
      *
      * @return Array
      */
-    public $booleanOptions = [];
+    public $booleanOptions = [
+        'force',
+    ];
 
     /**
      * Fill all placeholders in the stub file
@@ -54,24 +51,43 @@ class EnableDomain extends Maker
      * @return Boll
      */
     public function service(Array $values):Bool{
-        $this->name=$values['domain'];
+        $this->name = SafePath::className($values['domain']);
+        $repository = \theaddresstechnology\DDD\Modules\Repository::class;
+        if (app()->bound($repository) && app($repository)->has($this->name)) {
+            app($repository)->enable($this->name);
 
-        return $this->modifyConfig();
+            return true;
+        }
+
+        return $this->modifyConfig($values);
 
     }
-    public function modifyConfig(){
+    public function modifyConfig(array $values = []): Bool{
 
-        // Add Service Provider to bootstrap/providers
         $service_provider = NamespaceCreator::Segments("Src","Domain",$this->name,"Providers","DomainServiceProvider");
-        $app = File::get(base_path('bootstrap'.DIRECTORY_SEPARATOR.'providers.php'));
+        $providers = base_path('bootstrap'.DIRECTORY_SEPARATOR.'providers.php');
+
+        if (!File::isFile($providers)) {
+            $this->command?->error('bootstrap/providers.php was not found.');
+
+            return false;
+        }
+
+        $app = File::get($providers);
        if(Str::of($app)->contains([$service_provider],[false]) ==false) {
            $content = Str::of($app)->replace("###DOMAINS SERVICE PROVIDERS###", $service_provider . "::class,\n\t\t###DOMAINS SERVICE PROVIDERS###");
 
            $this->save(base_path().DIRECTORY_SEPARATOR."bootstrap", 'providers', 'php', $content);
 
-           $migration_path="src".DIRECTORY_SEPARATOR."Domain".DIRECTORY_SEPARATOR.$this->name.DIRECTORY_SEPARATOR."Database".DIRECTORY_SEPARATOR."Migrations";
+           $migration_path = base_path('src'.DIRECTORY_SEPARATOR.'Domain'.DIRECTORY_SEPARATOR.$this->name.DIRECTORY_SEPARATOR.'Database'.DIRECTORY_SEPARATOR.'Migrations');
 
-           \Illuminate\Support\Facades\Artisan::call("migrate",["--path"=>$migration_path]);
+           if (File::isDirectory($migration_path)) {
+               $parameters = ['--path' => $migration_path];
+               if (!empty($values['force'])) {
+                   $parameters['--force'] = true;
+               }
+               Artisan::call('migrate', $parameters);
+           }
 
            return true;
        }

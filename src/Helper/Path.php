@@ -18,7 +18,7 @@ class Path
 
     public static function toCommon(...$relatives): string
     {
-        return self::build(base_path("src".DIRECTORY_SEPARATOR.'Common'), ...$relatives);
+        return SafePath::confine(self::build(base_path("src".DIRECTORY_SEPARATOR.'Common'), ...$relatives), base_path());
     }
 
     /**
@@ -29,7 +29,7 @@ class Path
      */
     public static function toInfrastructure(...$relatives): string
     {
-        return self::build(base_path("src".DIRECTORY_SEPARATOR.'Infrastructure'), ...$relatives);
+        return SafePath::confine(self::build(base_path("src".DIRECTORY_SEPARATOR.'Infrastructure'), ...$relatives), base_path());
     }
 
     /**
@@ -52,7 +52,7 @@ class Path
      */
     public static function toDomain($name = '', ...$relatives): string
     {
-        return self::build(base_path('src'.DIRECTORY_SEPARATOR.'Domain'), $name, ...$relatives);
+        return SafePath::confine(self::build(base_path('src'.DIRECTORY_SEPARATOR.'Domain'), $name, ...$relatives), base_path());
     }
 
     /**
@@ -62,7 +62,7 @@ class Path
      */
     public static function package()
     {
-        return Str::before(__DIR__, 'src');
+        return dirname(__DIR__, 2);
     }
 
     /**
@@ -73,13 +73,32 @@ class Path
      */
     public static function build(...$names): string
     {
-        $isLinux = false;
-        if (strpos($names[0], DIRECTORY_SEPARATOR) === 0) {
-            $isLinux = true;
+        $names = array_values(array_filter($names, static fn ($name) => $name !== null && $name !== '' && $name !== false));
+
+        if ($names === []) {
+            return '';
         }
-        $path = join(DIRECTORY_SEPARATOR, ArrayFormatter::trim($names, DIRECTORY_SEPARATOR));
-        if ($isLinux) $path = DIRECTORY_SEPARATOR . $path;
-        return $path;
+
+        $first = (string) $names[0];
+        $absolute = str_starts_with($first, DIRECTORY_SEPARATOR) || str_starts_with($first, '/');
+        $clean = [];
+
+        foreach ($names as $name) {
+            $name = trim((string) $name, "/\\");
+            if ($name === '') {
+                continue;
+            }
+            foreach (preg_split('#[/\\\\]#', $name) as $segment) {
+                if ($segment === '') {
+                    continue;
+                }
+                $clean[] = SafePath::segment($segment);
+            }
+        }
+
+        $path = implode(DIRECTORY_SEPARATOR, $clean);
+
+        return $absolute ? DIRECTORY_SEPARATOR.$path : $path;
     }
 
     public static function files(...$dir): array

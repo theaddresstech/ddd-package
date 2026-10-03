@@ -88,7 +88,7 @@ class Resources extends Test
 
     public function createRelationships(JsonResource $resourceInstance)
     {
-        dd(new ReflectionClass($resourceInstance));
+        return '';
     }
 
     public function createSetupMethod(string $entity)

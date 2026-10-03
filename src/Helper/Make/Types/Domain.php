@@ -77,7 +77,9 @@ class Domain extends Maker
         $this->name = Naming::class($values['name']);
         $this->alias = Naming::DomainAlias($values['name']);
 
-        $this->createDirectories();
+        if (!$this->createDirectories()) {
+            return false;
+        }
 
         $this->createProviders();
 
@@ -88,6 +90,9 @@ class Domain extends Maker
         $this->resourceFolder();
 
         $this->createTests();
+
+        (new \theaddresstechnology\DDD\Modules\Scaffolder(base_path('src/Domain')))
+            ->identity($this->name, $this->alias);
 
         return true;
     }
@@ -103,7 +108,9 @@ class Domain extends Maker
         $directories = ArrayFormatter::directories(config('ddd.structure.domain'));
 
         if(File::isDirectory($this->path())){
-            $this->command->error("Domain Exists!");
+            if ($this->command) {
+                $this->command->error("Domain Exists!");
+            }
             return false;
         }else{
             File::makeDirectory($this->path());
@@ -218,7 +225,7 @@ class Domain extends Maker
     }
 
     public function resourceFolder(){
-        File::makeDirectory($this->path().DIRECTORY_SEPARATOR."Resources".DIRECTORY_SEPARATOR."Views",0777, true, true);
+        File::makeDirectory($this->path().DIRECTORY_SEPARATOR."Resources".DIRECTORY_SEPARATOR."Views",0755, true, true);
     }
 
     public function createTests(){

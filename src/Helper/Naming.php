@@ -15,7 +15,7 @@ class Naming
      * @return string
      */
     public static function DomainAlias($name){
-        return Str::plural(Str::lower($name));
+        return SafePath::tableName(Str::snake(Str::pluralStudly(SafePath::className($name))));
     }
 
     /**
@@ -25,7 +25,7 @@ class Naming
      * @return string
      */
     public static function file_name($name){
-        return Str::of(Str::lower($name))->replace(' ','_');
+        return SafePath::tableName($name);
     }
 
     /**
@@ -35,7 +35,7 @@ class Naming
      * @return string
      */
     public static function DatabaseViewTableName($name){
-        return Str::of(Str::lower($name))->replace(' ','_');
+        return SafePath::tableName($name);
     }
 
     /**
@@ -46,7 +46,9 @@ class Naming
      * @return string
      */
     public static function class($name,$prefix=''){
-        return Str::ucfirst(Str::camel(Str::lower($name. ' '. $prefix)));
+        $suffix = trim((string) $prefix);
+
+        return SafePath::className(trim($name.' '.$suffix));
     }
 
     /**
@@ -79,6 +81,6 @@ class Naming
      * @return string
      */
     public static function tableName($name){
-        return Str::of(Str::plural(Str::lower($name)))->replace(' ','_');
+        return SafePath::tableName(Str::snake(Str::pluralStudly(SafePath::className($name))));
     }
 }

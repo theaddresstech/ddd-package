@@ -57,7 +57,8 @@ class RegisterController extends Controller
 
         }
         catch(\Exception $exception){
-            $this->setApiResponse(fn() => response(['message' => $exception->getMessage()],Response::HTTP_CONFLICT));
+            report($exception);
+            $this->setApiResponse(fn() => response(['message' => 'The request could not be completed.'],Response::HTTP_CONFLICT));
         }
         return $this->response();
     }
